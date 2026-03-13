@@ -28,22 +28,18 @@ public class MusicPlaybackService extends LifecycleService
 
     private static final String TAG = "MusicService";
 
-    private MusicPlayer              musicPlayer;
+    private MusicPlayer musicPlayer;
     private MediaNotificationManager notificationManager;
-    private final IBinder            binder = new MusicBinder();
-    private AudioManager             audioManager;
-    private boolean                  isServiceRunning = false;
-    private boolean                  receiversRegistered = false;
+    private final IBinder binder = new MusicBinder();
+    private AudioManager audioManager;
+    private boolean isServiceRunning = false;
+    private boolean receiversRegistered = false;
 
     public class MusicBinder extends Binder {
         public MusicPlaybackService getService() {
             return MusicPlaybackService.this;
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Broadcast receiver
-    // -------------------------------------------------------------------------
 
     private final BroadcastReceiver audioReceiver = new BroadcastReceiver() {
         @Override
@@ -64,70 +60,49 @@ public class MusicPlaybackService extends LifecycleService
         }
     };
 
-    // -------------------------------------------------------------------------
-    // Lifecycle
-    // -------------------------------------------------------------------------
-
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate");
-
         musicPlayer = new MusicPlayer(this);
         musicPlayer.setCallback(this);
-
         notificationManager = new MediaNotificationManager(this);
         notificationManager.setServiceCallback(this);
-
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
         registerReceivers();
     }
 
     @android.annotation.SuppressLint("UnspecifiedRegisterReceiverFlag")
     private void registerReceivers() {
         if (receiversRegistered) return;
-
         IntentFilter audioFilter = new IntentFilter();
         audioFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         audioFilter.addAction(Intent.ACTION_MEDIA_BUTTON);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(audioReceiver, audioFilter, Context.RECEIVER_EXPORTED);
         } else {
             registerReceiver(audioReceiver, audioFilter);
         }
-
         receiversRegistered = true;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-
         String action = intent != null ? intent.getAction() : null;
-        Log.d(TAG, "onStartCommand action=" + action);
-
         if (!isServiceRunning) {
             startForegroundNotification();
             isServiceRunning = true;
         }
-
         if (action != null) {
             handleAction(action);
         }
-
         return START_STICKY;
     }
 
     private void startForegroundNotification() {
         Song currentSong = musicPlayer != null ? musicPlayer.getCurrentSong() : null;
         boolean isPlaying = musicPlayer != null && musicPlayer.isPlaying();
-
-        Log.d(TAG, "startForeground: song=" + (currentSong != null ? currentSong.getTitle() : "null"));
-
         Notification notification = notificationManager.createNotification(currentSong, isPlaying, 0L);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(notificationManager.getNotificationId(), notification,
                     android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
@@ -140,45 +115,33 @@ public class MusicPlaybackService extends LifecycleService
     @Override
     public IBinder onBind(Intent intent) {
         super.onBind(intent);
-        Log.d(TAG, "onBind");
         return binder;
     }
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy");
         super.onDestroy();
-
         if (receiversRegistered) {
             try {
                 unregisterReceiver(audioReceiver);
                 receiversRegistered = false;
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
-
         if (audioManager != null) {
             audioManager.abandonAudioFocus(audioFocusChangeListener);
         }
-
         if (notificationManager != null) {
             notificationManager.cancelNotification();
             notificationManager.release();
         }
-
         if (musicPlayer != null) {
             musicPlayer.release();
         }
-
         isServiceRunning = false;
     }
 
-    // -------------------------------------------------------------------------
-    // Action handling
-    // -------------------------------------------------------------------------
-
     private void handleAction(String action) {
-        Log.d(TAG, "handleAction: " + action);
-
         switch (action) {
             case Constants.ACTION_PLAY:
                 play();
@@ -202,8 +165,6 @@ public class MusicPlaybackService extends LifecycleService
     }
 
     private void handleMediaButtonEvent(KeyEvent ke) {
-        Log.d(TAG, "handleMediaButtonEvent: " + ke.getKeyCode());
-
         switch (ke.getKeyCode()) {
             case KeyEvent.KEYCODE_MEDIA_PLAY:
                 play();
@@ -226,10 +187,6 @@ public class MusicPlaybackService extends LifecycleService
                 break;
         }
     }
-
-    // -------------------------------------------------------------------------
-    // ServiceActionCallback (from MediaSession)
-    // -------------------------------------------------------------------------
 
     @Override
     public void onPlay() {
@@ -261,101 +218,52 @@ public class MusicPlaybackService extends LifecycleService
         togglePlayback();
     }
 
-    // -------------------------------------------------------------------------
-    // Playback controls - PUBLIC API
-    // -------------------------------------------------------------------------
-
-    /**
-     * Set playlist and start playing from given index.
-     * THIS METHOD MUST BE CALLED FROM ACTIVITY BEFORE PLAYING.
-     */
     public void setPlaylistAndPlay(List<Song> songs, int startIndex) {
-        Log.d(TAG, "setPlaylistAndPlay: songs=" + songs.size() + ", startIndex=" + startIndex);
-
         if (musicPlayer != null) {
             musicPlayer.setPlaylist(songs, startIndex);
             play();
         }
     }
 
-    /**
-     * Set playlist without playing.
-     */
     public void setPlaylist(List<Song> songs) {
-        Log.d(TAG, "setPlaylist: songs=" + songs.size());
-
-        if (musicPlayer != null) {
-            musicPlayer.setPlaylist(songs);
-        }
+        if (musicPlayer != null) musicPlayer.setPlaylist(songs);
     }
 
-    /**
-     * Set playlist with start index without auto-playing.
-     */
     public void setPlaylist(List<Song> songs, int startIndex) {
-        Log.d(TAG, "setPlaylist: songs=" + songs.size() + ", startIndex=" + startIndex);
-
-        if (musicPlayer != null) {
-            musicPlayer.setPlaylist(songs, startIndex);
-        }
+        if (musicPlayer != null) musicPlayer.setPlaylist(songs, startIndex);
     }
 
     public void play() {
-        Log.d(TAG, "play()");
         if (musicPlayer == null) return;
-
         if (requestAudioFocus()) {
             musicPlayer.play();
-            // Notification will be updated via callback
         }
     }
 
     public void pause() {
-        Log.d(TAG, "pause()");
-        if (musicPlayer != null) {
-            musicPlayer.pause();
-            // Notification will be updated via callback
-        }
+        if (musicPlayer != null) musicPlayer.pause();
     }
 
     public void togglePlayback() {
         if (musicPlayer == null) return;
-
-        boolean currentlyPlaying = musicPlayer.isPlaying();
-        Log.d(TAG, "togglePlayback() currentlyPlaying=" + currentlyPlaying);
-
-        if (currentlyPlaying) {
-            pause();
-        } else {
-            play();
-        }
+        if (musicPlayer.isPlaying()) pause();
+        else play();
     }
 
     public void playNext() {
-        Log.d(TAG, "playNext()");
-        if (musicPlayer != null) {
-            musicPlayer.playNext();
-        }
+        if (musicPlayer != null) musicPlayer.playNext();
     }
 
     public void playPrevious() {
-        Log.d(TAG, "playPrevious()");
-        if (musicPlayer != null) {
-            musicPlayer.playPrevious();
-        }
+        if (musicPlayer != null) musicPlayer.playPrevious();
     }
 
     public void playSongAt(int index) {
-        Log.d(TAG, "playSongAt(" + index + ")");
-        if (musicPlayer != null) {
-            musicPlayer.playSongAt(index);
-        }
+        if (musicPlayer != null) musicPlayer.playSongAt(index);
     }
 
     public void seekTo(long position) {
-        if (musicPlayer != null) {
-            musicPlayer.seekTo(position);
-        }
+        if (musicPlayer != null) musicPlayer.seekTo(position);
     }
 
     public MusicPlayer getMusicPlayer() {
@@ -378,92 +286,60 @@ public class MusicPlaybackService extends LifecycleService
         return musicPlayer != null ? musicPlayer.getCurrentIndex() : -1;
     }
 
-    // -------------------------------------------------------------------------
-    // Audio focus
-    // -------------------------------------------------------------------------
-
     private boolean requestAudioFocus() {
         if (audioManager == null) return false;
-
-        int result = audioManager.requestAudioFocus(
-                audioFocusChangeListener,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN);
+        int result = audioManager.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
         return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
     }
 
-    private final AudioManager.OnAudioFocusChangeListener audioFocusChangeListener =
-            focusChange -> {
-                switch (focusChange) {
-                    case AudioManager.AUDIOFOCUS_LOSS:
-                    case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                        if (musicPlayer != null && musicPlayer.isPlaying()) {
-                            pause();
-                        }
-                        break;
-                    case AudioManager.AUDIOFOCUS_GAIN:
-                        break;
-                    case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                        break;
-                }
-            };
-
-    // -------------------------------------------------------------------------
-    // MusicPlayer.PlayerCallback - THIS IS WHERE NOTIFICATION UPDATES HAPPEN
-    // -------------------------------------------------------------------------
+    private final AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = focusChange -> {
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_LOSS:
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                if (musicPlayer != null && musicPlayer.isPlaying()) pause();
+                break;
+        }
+    };
 
     @Override
     public void onPlaybackStateChanged(boolean isPlaying) {
-        Log.d(TAG, "CALLBACK onPlaybackStateChanged: " + isPlaying);
-
-        // Get current song directly from MusicPlayer
         Song song = musicPlayer != null ? musicPlayer.getCurrentSong() : null;
         long position = musicPlayer != null ? musicPlayer.getCurrentPosition() : 0L;
-
-        Log.d(TAG, "Updating notification: song=" + (song != null ? song.getTitle() : "null")
-                + ", isPlaying=" + isPlaying);
-
-        if (notificationManager != null) {
+        long duration = musicPlayer != null ? musicPlayer.getDuration() : 0L;
+        if (notificationManager != null)
             notificationManager.updateNotification(song, isPlaying, position);
-        }
-
-        updateWidget(song, isPlaying);
+        updateWidget(song, isPlaying, position, duration);
     }
 
     @Override
     public void onSongChanged(Song song) {
-        Log.d(TAG, "CALLBACK onSongChanged: " + (song != null ? song.getTitle() : "null"));
-
         boolean isPlaying = musicPlayer != null && musicPlayer.isPlaying();
-
-        if (notificationManager != null) {
+        long duration = musicPlayer != null ? musicPlayer.getDuration() : 0L;
+        if (notificationManager != null)
             notificationManager.updateNotification(song, isPlaying, 0L);
-        }
-
-        updateWidget(song, isPlaying);
+        updateWidget(song, isPlaying, 0L, duration);
     }
 
     @Override
     public void onPositionChanged(long position, long duration) {
-        // No notification update needed here - too frequent
+        Song song = musicPlayer != null ? musicPlayer.getCurrentSong() : null;
+        boolean isPlaying = musicPlayer != null && musicPlayer.isPlaying();
+        updateWidget(song, isPlaying, position, duration);
     }
 
     @Override
     public void onPlaybackError(String message) {
-        Log.e(TAG, "CALLBACK onPlaybackError: " + message);
     }
 
-    // -------------------------------------------------------------------------
-    // Widget
-    // -------------------------------------------------------------------------
-
-    private void updateWidget(Song song, boolean isPlaying) {
+    private void updateWidget(Song song, boolean isPlaying, long position, long duration) {
         MusicWidgetProvider.updateWidgetInfo(
                 this,
                 song != null ? song.getTitle() : null,
                 song != null ? song.getArtist() : null,
                 song != null ? song.getAlbumArt() : null,
-                isPlaying
+                isPlaying,
+                position,
+                duration
         );
     }
 }

@@ -7,11 +7,14 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
+import b.my.audioplayer.database.AppDatabase;
 import b.my.audioplayer.model.Song;
 import b.my.audioplayer.utils.PreferenceHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MusicPlayer {
 
@@ -27,6 +30,7 @@ public class MusicPlayer {
     private Handler handler;
     private Runnable positionUpdateRunnable;
     private boolean isPositionUpdateRunning = false;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public interface PlayerCallback {
         void onPlaybackStateChanged(boolean isPlaying);
@@ -72,11 +76,11 @@ public class MusicPlayer {
             @Override
             public void onMediaItemTransition(MediaItem mediaItem, int reason) {
                 int newIndex = exoPlayer.getCurrentMediaItemIndex();
-                if (newIndex >= 0) {
+                if (newIndex >= 0 && newIndex < currentPlaylist.size()) {
                     currentIndex = newIndex;
-                }
-                if (callback != null && currentIndex >= 0 && currentIndex < currentPlaylist.size()) {
-                    callback.onSongChanged(currentPlaylist.get(currentIndex));
+                    if (callback != null) {
+                        callback.onSongChanged(currentPlaylist.get(currentIndex));
+                    }
                 }
                 saveCurrentState();
             }
@@ -94,6 +98,28 @@ public class MusicPlayer {
         isShuffleEnabled = preferenceHelper.isShuffleEnabled();
         repeatMode = preferenceHelper.getRepeatMode();
         exoPlayer.setRepeatMode(repeatMode);
+
+        long lastSongId = preferenceHelper.getLastPlayedSongId();
+        executorService.execute(() -> {
+            List<Song> allSongs = AppDatabase.getInstance(context).songDao().getAllSongsSync();
+            if (allSongs != null && !allSongs.isEmpty()) {
+                handler.post(() -> {
+                    setPlaylist(allSongs);
+                    if (lastSongId != -1) {
+                        for (int i = 0; i < allSongs.size(); i++) {
+                            if (allSongs.get(i).getId() == lastSongId) {
+                                currentIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    exoPlayer.seekTo(currentIndex, preferenceHelper.getLastPosition());
+                    if (callback != null && currentIndex < allSongs.size()) {
+                        callback.onSongChanged(allSongs.get(currentIndex));
+                    }
+                });
+            }
+        });
     }
 
     private void saveCurrentState() {
@@ -154,8 +180,7 @@ public class MusicPlayer {
             mediaItems.add(mediaItem);
         }
         
-        // Use atomic setMediaItems to ensure correct starting song and avoid race conditions
-        exoPlayer.setMediaItems(mediaItems, currentIndex, 0);
+        exoPlayer.setMediaItems(mediaItems, currentIndex, exoPlayer.getCurrentPosition());
         exoPlayer.prepare();
     }
 
@@ -179,7 +204,6 @@ public class MusicPlayer {
             return;
         }
 
-        // If playlist is empty, don't try to play
         if (currentPlaylist == null || currentPlaylist.isEmpty()) {
             if (callback != null) {
                 callback.onPlaybackError("Playlist is empty");
@@ -187,14 +211,8 @@ public class MusicPlayer {
             return;
         }
 
-        // Ensure we have a valid index
         if (currentIndex < 0 || currentIndex >= currentPlaylist.size()) {
             currentIndex = 0;
-        }
-
-        // Ensure ExoPlayer is at the correct position before playing
-        if (exoPlayer.getCurrentMediaItemIndex() != currentIndex) {
-            exoPlayer.seekToDefaultPosition(currentIndex);
         }
 
         exoPlayer.play();
@@ -211,13 +229,11 @@ public class MusicPlayer {
     }
 
     public void playNext() {
-        if (currentIndex < currentPlaylist.size() - 1) {
-            currentIndex++;
-            exoPlayer.seekToDefaultPosition(currentIndex);
+        if (exoPlayer.hasNextMediaItem()) {
+            exoPlayer.seekToNextMediaItem();
             play();
         } else if (repeatMode == Player.REPEAT_MODE_ALL) {
-            currentIndex = 0;
-            exoPlayer.seekToDefaultPosition(currentIndex);
+            exoPlayer.seekTo(0, 0);
             play();
         }
     }
@@ -225,13 +241,11 @@ public class MusicPlayer {
     public void playPrevious() {
         if (exoPlayer.getCurrentPosition() > 3000) {
             exoPlayer.seekTo(0);
-        } else if (currentIndex > 0) {
-            currentIndex--;
-            exoPlayer.seekToDefaultPosition(currentIndex);
+        } else if (exoPlayer.hasPreviousMediaItem()) {
+            exoPlayer.seekToPreviousMediaItem();
             play();
         } else if (repeatMode == Player.REPEAT_MODE_ALL) {
-            currentIndex = currentPlaylist.size() - 1;
-            exoPlayer.seekToDefaultPosition(currentIndex);
+            exoPlayer.seekTo(currentPlaylist.size() - 1, 0);
             play();
         }
     }
@@ -239,7 +253,7 @@ public class MusicPlayer {
     public void playSongAt(int index) {
         if (index >= 0 && index < currentPlaylist.size()) {
             currentIndex = index;
-            exoPlayer.seekToDefaultPosition(currentIndex);
+            exoPlayer.seekTo(currentIndex, 0);
             play();
         }
     }
@@ -251,10 +265,10 @@ public class MusicPlayer {
     public void toggleShuffle() {
         isShuffleEnabled = !isShuffleEnabled;
 
+        Song currentSong = getCurrentSong();
         if (isShuffleEnabled) {
             shufflePlaylist();
         } else {
-            Song currentSong = getCurrentSong();
             currentPlaylist = new ArrayList<>(originalPlaylist);
             if (currentSong != null) {
                 currentIndex = currentPlaylist.indexOf(currentSong);
@@ -290,8 +304,7 @@ public class MusicPlayer {
 
     private void handlePlaybackEnded() {
         if (repeatMode == Player.REPEAT_MODE_OFF) {
-            if (currentIndex >= currentPlaylist.size() - 1) {
-                // Playlist ended
+            if (!exoPlayer.hasNextMediaItem()) {
                 stop();
             }
         }
@@ -384,24 +397,14 @@ public class MusicPlayer {
     }
 
     public void addToQueueNext(Song song) {
-        if (currentPlaylist == null) {
-            currentPlaylist = new ArrayList<>();
-        }
-        if (originalPlaylist == null) {
-            originalPlaylist = new ArrayList<>();
-        }
+        if (currentPlaylist == null) currentPlaylist = new ArrayList<>();
+        if (originalPlaylist == null) originalPlaylist = new ArrayList<>();
 
-        // If no song is currently playing, add at the beginning
-        if (currentIndex < 0 || currentIndex >= currentPlaylist.size()) {
-            addToQueue(song);
-            return;
-        }
-
-        int insertIndex = currentIndex + 1;
-
-        // Ensure insertIndex doesn't exceed list size
-        if (insertIndex > currentPlaylist.size()) {
-            insertIndex = currentPlaylist.size();
+        int insertIndex;
+        if (currentPlaylist.isEmpty() || currentIndex < 0) {
+            insertIndex = 0;
+        } else {
+            insertIndex = Math.min(currentIndex + 1, currentPlaylist.size());
         }
 
         currentPlaylist.add(insertIndex, song);
@@ -426,5 +429,6 @@ public class MusicPlayer {
         saveCurrentState();
         stopPositionUpdates();
         exoPlayer.release();
+        executorService.shutdown();
     }
 }

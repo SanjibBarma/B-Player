@@ -14,6 +14,7 @@ import b.my.audioplayer.activity.NowPlayingActivity;
 import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.utils.AlbumArtHelper;
 import b.my.audioplayer.utils.Constants;
+import java.util.concurrent.TimeUnit;
 
 public class MusicWidgetProvider extends AppWidgetProvider {
 
@@ -26,6 +27,8 @@ public class MusicWidgetProvider extends AppWidgetProvider {
     private static String currentArtist = "B Player";
     private static String currentAlbumArtPath = null;
     private static boolean isPlaying = false;
+    private static long currentPosition = 0;
+    private static long totalDuration = 0;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -52,7 +55,6 @@ public class MusicWidgetProvider extends AppWidgetProvider {
                 sendActionToService(context, Constants.ACTION_PREVIOUS);
                 break;
             case ACTION_UPDATE_WIDGET:
-                // Get updated info from intent extras
                 if (intent.hasExtra("title")) {
                     currentTitle = intent.getStringExtra("title");
                 }
@@ -65,6 +67,8 @@ public class MusicWidgetProvider extends AppWidgetProvider {
                 if (intent.hasExtra("is_playing")) {
                     isPlaying = intent.getBooleanExtra("is_playing", false);
                 }
+                currentPosition = intent.getLongExtra("position", 0);
+                totalDuration = intent.getLongExtra("duration", 0);
                 updateAllWidgets(context);
                 break;
         }
@@ -110,7 +114,25 @@ public class MusicWidgetProvider extends AppWidgetProvider {
         views.setImageViewResource(R.id.widgetBtnPlayPause,
                 isPlaying ? R.drawable.ic_pause : R.drawable.ic_play);
 
+        // Update Progress
+        if (totalDuration > 0) {
+            int progress = (int) ((currentPosition * 100) / totalDuration);
+            views.setProgressBar(R.id.widgetProgressBar, 100, progress, false);
+            views.setTextViewText(R.id.widgetCurrentTime, formatTime(currentPosition));
+            views.setTextViewText(R.id.widgetTotalTime, formatTime(totalDuration));
+        } else {
+            views.setProgressBar(R.id.widgetProgressBar, 100, 0, false);
+            views.setTextViewText(R.id.widgetCurrentTime, "00:00");
+            views.setTextViewText(R.id.widgetTotalTime, "00:00");
+        }
+
         // Set click intents
+        setupClickIntents(context, views);
+
+        appWidgetManager.updateAppWidget(widgetId, views);
+    }
+
+    private static void setupClickIntents(Context context, RemoteViews views) {
         // Play/Pause
         Intent playPauseIntent = new Intent(context, MusicWidgetProvider.class);
         playPauseIntent.setAction(ACTION_PLAY_PAUSE);
@@ -135,40 +157,28 @@ public class MusicWidgetProvider extends AppWidgetProvider {
         );
         views.setOnClickPendingIntent(R.id.widgetBtnPrevious, previousPendingIntent);
 
-        // Open app on album art click
+        // Open app
         Intent openAppIntent = new Intent(context, MainActivity.class);
         PendingIntent openAppPendingIntent = PendingIntent.getActivity(
                 context, 3, openAppIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         views.setOnClickPendingIntent(R.id.widgetAlbumArt, openAppPendingIntent);
-
-        // Open Now Playing on title click
-        Intent openNowPlayingIntent = new Intent(context, NowPlayingActivity.class);
-        PendingIntent openNowPlayingPendingIntent = PendingIntent.getActivity(
-                context, 4, openNowPlayingIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-        views.setOnClickPendingIntent(R.id.widgetSongTitle, openNowPlayingPendingIntent);
-        views.setOnClickPendingIntent(R.id.widgetArtistName, openNowPlayingPendingIntent);
-
-        appWidgetManager.updateAppWidget(widgetId, views);
     }
 
     public static void updateWidgetInfo(Context context, String title, String artist,
-                                        String albumArtPath, boolean playing) {
+                                        String albumArtPath, boolean playing, long position, long duration) {
         currentTitle = title != null ? title : "No song playing";
         currentArtist = artist != null ? artist : "B Player";
         currentAlbumArtPath = albumArtPath;
         isPlaying = playing;
+        currentPosition = position;
+        totalDuration = duration;
         updateAllWidgets(context);
     }
 
-    @Override
-    public void onEnabled(Context context) {
-        super.onEnabled(context);
-    }
-
-    @Override
-    public void onDisabled(Context context) {
-        super.onDisabled(context);
+    private static String formatTime(long millis) {
+        return String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(millis),
+                TimeUnit.MILLISECONDS.toSeconds(millis) % 60);
     }
 }

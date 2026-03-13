@@ -31,7 +31,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
     private OnSongClickListener listener;
     private OnSongMenuClickListener menuListener;
 
-    // Track which song is currently playing
     private long playingSongId = -1;
     private boolean isPlaying = false;
 
@@ -41,13 +40,9 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
 
     public interface OnSongMenuClickListener {
         void onPlayNext(Song song);
-
         void onAddToPlaylist(Song song);
-
         void onToggleFavorite(Song song);
-
         void onDelete(Song song);
-
         void onShare(Song song);
     }
 
@@ -64,25 +59,17 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
         return songs;
     }
 
-    /**
-     * Call this whenever the playing song or play/pause state changes.
-     * Only redraws the two affected rows (old and new), not the whole list.
-     */
     public void setPlayingState(long songId, boolean playing) {
         long oldId = this.playingSongId;
         this.playingSongId = songId;
         this.isPlaying = playing;
 
-        // Rebind only the rows that changed
         if (oldId != songId) {
             notifyItemChangedById(oldId);
         }
         notifyItemChangedById(songId);
     }
 
-    /**
-     * Returns the list position of the currently playing song, or -1 if not found.
-     */
     public int getPlayingPosition() {
         if (playingSongId == -1) return -1;
         for (int i = 0; i < songs.size(); i++) {
@@ -123,8 +110,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
         holder.bind(song, position, isThisPlaying, isPlaying);
     }
 
-    // Called by RecyclerView when a view is recycled — stop animation to avoid
-    // a detached WaveView continuing to postInvalidateDelayed in the background
     @Override
     public void onViewRecycled(@NonNull SongViewHolder holder) {
         super.onViewRecycled(holder);
@@ -162,11 +147,15 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
             title.setText(song.getTitle());
             artist.setText(song.getArtist());
             duration.setText(formatDuration(song.getDuration()));
+
+            // Start Marquee animation only if the song is playing
+            title.setSelected(isThisPlaying && playing);
+            artist.setSelected(isThisPlaying && playing);
+
             textGradient(title);
             textGradient(artist);
             textGradient(duration);
 
-            // Album art
             if (song.getAlbumArt() != null && !song.getAlbumArt().isEmpty()) {
                 Glide.with(context)
                         .load(song.getAlbumArt())
@@ -177,30 +166,24 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
                 albumArt.setImageResource(R.drawable.ic_music_note);
             }
 
-            // Favorite icon
             favoriteIcon.setVisibility(song.isFavorite() ? View.VISIBLE : View.GONE);
 
-            // WaveView: show + animate only for the currently playing song
             if (isThisPlaying) {
                 wavePlayed.setVisibility(View.VISIBLE);
                 if (playing) {
                     wavePlayed.startAnimation();
                 } else {
-                    // Paused — show frozen bars, no animation
                     wavePlayed.stopAnimation();
-                    wavePlayed.setVisibility(View.VISIBLE);
                 }
             } else {
                 wavePlayed.stopAnimation();
                 wavePlayed.setVisibility(View.GONE);
             }
 
-            // Click listener
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onSongClick(song, position);
             });
 
-            // Menu button
             menuButton.setOnClickListener(v -> showPopupMenu(v, song));
         }
 
