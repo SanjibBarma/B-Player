@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Base vertical gradient background -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:centerColor="#1a1a2e"
+                android:endColor="#000000"
+                android:startColor="#050109" />
+        </shape>
+    </item>
+
+    <!-- Glossy highlight left → right -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:endColor="#00FFFFFF"
+                android:startColor="#23FFFFFF" />
+        </shape>
+    </item>
+
+</layer-list>
