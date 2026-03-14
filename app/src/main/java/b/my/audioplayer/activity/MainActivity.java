@@ -1,17 +1,24 @@
 package b.my.audioplayer.activity;
 
+import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -19,12 +26,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.Player;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -39,6 +49,7 @@ import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.utils.Constants;
 import b.my.audioplayer.utils.PermissionHelper;
 import b.my.audioplayer.viewmodel.MainViewModel;
+import es.dmoral.toasty.Toasty;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isBound = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable progressRunnable;
+    Dialog dialog;
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -82,6 +94,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        dialog = new Dialog(MainActivity.this, R.style.TransparentProgressDialog);
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.custom_progress_layout);
+        dialog.setOwnerActivity(MainActivity.this);
+
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
         initViews();
@@ -89,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
         setupBottomNavigation();
         setupMiniPlayer();
         checkPermissions();
+        setupObservers();
     }
 
     private void initViews() {
@@ -111,9 +132,16 @@ public class MainActivity extends AppCompatActivity {
         miniPlayerTitle.setSelected(true);
     }
 
-    // Cached fragment instances — never re-created, just shown/hidden.
-    // This keeps SongsFragment alive across tab switches so its service
-    // binding, adapter state, and scroll position are always current.
+    private void setupObservers() {
+        viewModel.getIsScanning().observe(this, isScanning -> {
+            if (isScanning) {
+                dialog.show();
+            } else {
+                dialog.dismiss();
+            }
+        });
+    }
+
     private SongsFragment songsFragment;
     private AlbumsFragment albumsFragment;
     private PlaylistsFragment playlistsFragment;
@@ -315,8 +343,7 @@ public class MainActivity extends AppCompatActivity {
                 loadMusic();
                 startMusicService();
             } else {
-                Toast.makeText(this, "Permission required to access music files",
-                        Toast.LENGTH_LONG).show();
+                Toasty.info(this, "Permission required to access music files", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -393,6 +420,10 @@ public class MainActivity extends AppCompatActivity {
             showSleepTimerDialog();
             return true;
         }
+        if (id == R.id.action_scan) {
+            viewModel.scanMediaFiles(this);
+            return true;
+        }
         if (id == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
@@ -402,21 +433,71 @@ public class MainActivity extends AppCompatActivity {
 
     private void showSleepTimerDialog() {
         String[] options = {"10 minutes", "20 minutes", "30 minutes", "60 minutes", "Cancel timer"};
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Sleep Timer")
-                .setItems(options, (dialog, which) -> {
-                    if (which == 4) {
-                        Toast.makeText(this, "Sleep timer cancelled", Toast.LENGTH_SHORT).show();
-                        return;
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_options_list, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        RecyclerView rvOptions = dialogView.findViewById(R.id.recyclerViewOptions);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        tvTitle.setText("Sleep Timer");
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        dialog.show();
+
+        // Optional: Rounded corners and proper width
+        if (dialog.getWindow() != null) {
+//            dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_dialog_rounded);
+            dialog.getWindow().setLayout(
+                    (int)(getResources().getDisplayMetrics().widthPixels * 0.9), // 90% of screen width
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
+        rvOptions.setLayoutManager(new LinearLayoutManager(this));
+        rvOptions.setAdapter(new RecyclerView.Adapter<OptionViewHolder>() {
+            @NonNull
+            @Override
+            public OptionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dialog_option, parent, false);
+                return new OptionViewHolder(view);
+            }
+
+            @Override
+            public void onBindViewHolder(@NonNull OptionViewHolder holder, int position) {
+                holder.tvOption.setText(options[position]);
+                holder.itemView.setOnClickListener(v -> {
+                    if (position == 4) {
+                        Toasty.info(MainActivity.this, "Sleep timer cancelled", Toast.LENGTH_SHORT).show();
+                    } else {
+                        int[] mins = {10, 20, 30, 60};
+                        int m = mins[position];
+                        handler.postDelayed(() -> {
+                            if (isBound) musicService.pause();
+                        }, m * 60 * 1000L);
+                        Toasty.success(MainActivity.this, "Sleep timer set for " + m + " minutes", Toast.LENGTH_SHORT).show();
                     }
-                    int[] mins = {10, 20, 30, 60};
-                    int m = mins[which];
-                    handler.postDelayed(() -> {
-                        if (isBound) musicService.pause();
-                    }, m * 60 * 1000L);
-                    Toast.makeText(this, "Sleep timer set for " + m + " minutes",
-                            Toast.LENGTH_SHORT).show();
-                }).show();
+                    dialog.dismiss();
+                });
+            }
+
+            @Override
+            public int getItemCount() {
+                return options.length;
+            }
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+    }
+
+    private static class OptionViewHolder extends RecyclerView.ViewHolder {
+        TextView tvOption;
+        OptionViewHolder(View view) {
+            super(view);
+            tvOption = view.findViewById(R.id.tvOptionName);
+        }
     }
 
     // -------------------------------------------------------------------------

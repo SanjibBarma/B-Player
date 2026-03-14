@@ -2,7 +2,6 @@ package b.my.audioplayer.repository;
 
 import android.app.Application;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.MediatorLiveData;
 import b.my.audioplayer.database.AppDatabase;
 import b.my.audioplayer.database.SongDao;
@@ -55,6 +54,10 @@ public class MusicRepository {
 
     public void update(Song song) {
         songDao.update(song);
+    }
+
+    public void updateFavoriteStatus(long songId, boolean isFavorite) {
+        songDao.updateFavoriteStatus(songId, isFavorite);
     }
 
     public void delete(Song song) {

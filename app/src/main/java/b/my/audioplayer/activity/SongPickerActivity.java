@@ -16,6 +16,8 @@ import b.my.audioplayer.model.Song;
 import b.my.audioplayer.utils.Constants;
 import b.my.audioplayer.viewmodel.MainViewModel;
 import b.my.audioplayer.viewmodel.PlaylistViewModel;
+import es.dmoral.toasty.Toasty;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +64,7 @@ public class SongPickerActivity extends AppCompatActivity {
 
         btnAdd.setOnClickListener(v -> {
             if (selectedSongs.isEmpty()) {
-                Toast.makeText(this, "Select at least one song", Toast.LENGTH_SHORT).show();
+                Toasty.warning(this, "Select at least one song", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -71,7 +73,7 @@ public class SongPickerActivity extends AppCompatActivity {
                 songIds.add(song.getId());
             }
             playlistViewModel.addSongsToPlaylist(playlistId, songIds);
-            Toast.makeText(this, selectedSongs.size() + " songs added", Toast.LENGTH_SHORT).show();
+            Toasty.info(this, selectedSongs.size() + " songs added", Toast.LENGTH_SHORT).show();
             finish();
         });
     }

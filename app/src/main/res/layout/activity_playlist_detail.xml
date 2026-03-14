@@ -37,13 +37,14 @@
                 android:layout_height="match_parent"
                 android:background="@drawable/gradient_overlay"/>
 
-            <androidx.appcompat.widget.Toolbar
+            <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
                 app:navigationIcon="@drawable/ic_arrow_back"
-                app:navigationIconTint="@color/colorSecondary"/>
+                app:navigationIconTint="@color/colorSecondary"
+                app:titleTextColor="@color/colorSecondary"/>
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 

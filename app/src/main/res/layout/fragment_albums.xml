@@ -12,7 +12,7 @@
         android:clipToPadding="false"
         android:paddingBottom="80dp"/>
 
-    <TextView
+    <b.my.audioplayer.utils.GradientTextView
         android:id="@+id/emptyText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

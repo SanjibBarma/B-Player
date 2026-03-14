@@ -4,26 +4,29 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import b.my.audioplayer.R;
 import b.my.audioplayer.activity.NowPlayingActivity;
 import b.my.audioplayer.adapter.SongAdapter;
 import b.my.audioplayer.model.Song;
 import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.viewmodel.MainViewModel;
+import es.dmoral.toasty.Toasty;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,13 +35,12 @@ public class FavoritesFragment extends Fragment {
     private MainViewModel viewModel;
     private RecyclerView recyclerView;
     private SongAdapter adapter;
-    private TextView emptyText;
-    private ImageView ivFavorite;
+    private View emptyState;
 
     private MusicPlaybackService musicService;
     private boolean isBound = false;
 
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicPlaybackService.MusicBinder binder = (MusicPlaybackService.MusicBinder) service;
@@ -73,8 +75,7 @@ public class FavoritesFragment extends Fragment {
 
     private void initViews(View view) {
         recyclerView = view.findViewById(R.id.recyclerViewFavorites);
-        emptyText = view.findViewById(R.id.emptyText);
-        ivFavorite = view.findViewById(R.id.ivFavorite);
+        emptyState = view.findViewById(R.id.emptyState);
     }
 
     private void setupRecyclerView() {
@@ -83,9 +84,8 @@ public class FavoritesFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         adapter.setOnSongClickListener((song, position) -> {
-            if (isBound) {
-                musicService.getMusicPlayer().setPlaylist(adapter.getSongs(), position);
-                musicService.play();
+            if (isBound && musicService != null) {
+                musicService.setPlaylistAndPlay(adapter.getSongs(), position);
                 startActivity(new Intent(requireContext(), NowPlayingActivity.class));
             }
         });
@@ -93,14 +93,15 @@ public class FavoritesFragment extends Fragment {
         adapter.setOnSongMenuClickListener(new SongAdapter.OnSongMenuClickListener() {
             @Override
             public void onPlayNext(Song song) {
-                if (isBound) {
+                if (isBound && musicService != null) {
                     musicService.getMusicPlayer().addToQueueNext(song);
+                    Toasty.info(requireContext(), "Will play next", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onAddToPlaylist(Song song) {
-                // Show playlist dialog
+                // Should be implemented or use common dialog
             }
 
             @Override
@@ -110,7 +111,7 @@ public class FavoritesFragment extends Fragment {
 
             @Override
             public void onDelete(Song song) {
-                // Show delete confirmation
+                // Implementation for delete
             }
 
             @Override
@@ -130,12 +131,11 @@ public class FavoritesFragment extends Fragment {
             adapter.setSongs(favoriteSongs);
 
             if (favoriteSongs.isEmpty()) {
-                emptyText.setVisibility(View.VISIBLE);
+                emptyState.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
             } else {
-                emptyText.setVisibility(View.GONE);
+                emptyState.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
-                ivFavorite.setBackgroundTintList(ColorStateList.valueOf(requireContext().getColor(R.color.colorFavorite)));
             }
         });
     }
@@ -150,6 +150,7 @@ public class FavoritesFragment extends Fragment {
         super.onDestroyView();
         if (isBound) {
             requireContext().unbindService(serviceConnection);
+            isBound = false;
         }
     }
 }

@@ -112,8 +112,9 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     public void toggleFavorite(Song song) {
-        song.setFavorite(!song.isFavorite());
-        executorService.execute(() -> repository.update(song));
+        boolean newStatus = !song.isFavorite();
+        song.setFavorite(newStatus);
+        executorService.execute(() -> repository.updateFavoriteStatus(song.getId(), newStatus));
     }
 
     public LiveData<List<Song>> searchSongs(String query) {

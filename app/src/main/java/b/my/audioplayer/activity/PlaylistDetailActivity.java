@@ -3,39 +3,55 @@ package b.my.audioplayer.activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+
 import b.my.audioplayer.R;
+import b.my.audioplayer.adapter.PlaylistAdapter;
 import b.my.audioplayer.adapter.SongAdapter;
 import b.my.audioplayer.model.Playlist;
 import b.my.audioplayer.model.Song;
 import b.my.audioplayer.service.MusicPlaybackService;
+import b.my.audioplayer.viewmodel.MainViewModel;
 import b.my.audioplayer.viewmodel.PlaylistViewModel;
 import b.my.audioplayer.utils.Constants;
+import es.dmoral.toasty.Toasty;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class PlaylistDetailActivity extends AppCompatActivity {
 
     private PlaylistViewModel viewModel;
+    private MainViewModel mainViewModel;
     private RecyclerView recyclerView;
     private SongAdapter adapter;
     private CollapsingToolbarLayout collapsingToolbar;
@@ -43,7 +59,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private MaterialButton btnPlayAll;
     private MaterialButton btnShuffleAll;
     private FloatingActionButton fabAddSongs;
-    private Toolbar toolbar;
+    private MaterialToolbar toolbar;
     private TextView emptyStateText;
     private View emptyStateView;
 
@@ -80,6 +96,8 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         }
 
         viewModel = new ViewModelProvider(this).get(PlaylistViewModel.class);
+        mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        
         initViews();
         setupRecyclerView();
         loadPlaylistDetails();
@@ -103,11 +121,38 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        // Set colors
+        setupToolbarColors();
+
+        toolbar.setNavigationOnClickListener(v -> finish());
 
         btnPlayAll.setOnClickListener(v -> playAll(false));
         btnShuffleAll.setOnClickListener(v -> playAll(true));
         fabAddSongs.setOnClickListener(v -> showAddSongsDialog());
+    }
+
+    private void setupToolbarColors() {
+        int color = ContextCompat.getColor(this, R.color.colorSecondary);
+
+        // CollapsingToolbar title colors
+        collapsingToolbar.setExpandedTitleColor(color);
+        collapsingToolbar.setCollapsedTitleTextColor(color);
+
+        // Navigation icon (back arrow) color
+        Drawable navIcon = toolbar.getNavigationIcon();
+        if (navIcon != null) {
+            navIcon = DrawableCompat.wrap(navIcon).mutate();
+            DrawableCompat.setTint(navIcon, color);
+            toolbar.setNavigationIcon(navIcon);
+        }
+
+        // Overflow menu icon color
+        Drawable overflowIcon = ContextCompat.getDrawable(this, R.drawable.ic_more_vert);
+        if (overflowIcon != null) {
+            overflowIcon = DrawableCompat.wrap(overflowIcon).mutate();
+            DrawableCompat.setTint(overflowIcon, color);
+            toolbar.setOverflowIcon(overflowIcon);
+        }
     }
 
     private void setupRecyclerView() {
@@ -128,8 +173,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             public void onPlayNext(Song song) {
                 if (isBound) {
                     musicService.getMusicPlayer().addToQueueNext(song);
-                    Toast.makeText(PlaylistDetailActivity.this,
-                            "Will play next", Toast.LENGTH_SHORT).show();
+                    Toasty.info(PlaylistDetailActivity.this, "Will play next", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -140,10 +184,10 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
             @Override
             public void onToggleFavorite(Song song) {
-                // Toggle favorite in main ViewModel
-                Toast.makeText(PlaylistDetailActivity.this,
-                        song.isFavorite() ? "Removed from favorites" : "Added to favorites",
-                        Toast.LENGTH_SHORT).show();
+                mainViewModel.toggleFavorite(song);
+                Toasty.info(PlaylistDetailActivity.this, 
+                    song.isFavorite() ? "Added to Favorites" : "Removed from Favorites", 
+                    Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -240,7 +284,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             musicService.play();
             startActivity(new Intent(this, NowPlayingActivity.class));
         } else if (playlistSongs.isEmpty()) {
-            Toast.makeText(this, "Playlist is empty", Toast.LENGTH_SHORT).show();
+            Toasty.info(this, "Playlist is empty", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -251,44 +295,71 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     }
 
     private void showAddToPlaylistDialog(Song song) {
-        // Show dialog with all playlists
         viewModel.getAllPlaylists().observe(this, playlists -> {
             if (playlists == null || playlists.isEmpty()) {
-                Toast.makeText(this, "No playlists available", Toast.LENGTH_SHORT).show();
+                Toasty.info(this, "No playlists available", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            String[] playlistNames = new String[playlists.size()];
-            for (int i = 0; i < playlists.size(); i++) {
-                playlistNames[i] = playlists.get(i).getName();
+            View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_playlist_picker, null);
+            RecyclerView rv = dialogView.findViewById(R.id.recyclerViewPlaylists);
+            Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .create();
+
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             }
 
-            new AlertDialog.Builder(this)
-                    .setTitle("Add to Playlist")
-                    .setItems(playlistNames, (dialog, which) -> {
-                        Playlist selected = playlists.get(which);
-                        viewModel.addSongToPlaylist(selected.getId(), song.getId());
-                        Toast.makeText(this, "Added to " + selected.getName(),
-                                Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+            PlaylistAdapter playlistAdapter = new PlaylistAdapter(this);
+            playlistAdapter.setPlaylists(playlists);
+            rv.setLayoutManager(new LinearLayoutManager(this));
+            rv.setAdapter(playlistAdapter);
+
+            playlistAdapter.setOnPlaylistClickListener(selected -> {
+                viewModel.addSongToPlaylist(selected.getId(), song.getId());
+                Toasty.success(this, "Added to " + selected.getName(), Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            });
+
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+            dialog.show();
         });
     }
 
     private void removeFromPlaylist(Song song) {
-        new AlertDialog.Builder(this)
-                .setTitle("Remove from Playlist")
-                .setMessage("Remove \"" + song.getTitle() + "\" from this playlist?")
-                .setPositiveButton("Remove", (dialog, which) -> {
-                    viewModel.removeSongFromPlaylist(playlistId, song.getId());
-                    Toast.makeText(this, "Removed from playlist", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> {
-                    // Restore the item in RecyclerView
-                    adapter.notifyDataSetChanged();
-                })
-                .show();
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_confirmation, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        Button btnConfirm = dialogView.findViewById(R.id.btnConfirm);
+
+        tvTitle.setText("Remove from Playlist");
+        tvMessage.setText("Remove \"" + song.getTitle() + "\" from this playlist?");
+        btnConfirm.setText("Remove");
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        btnConfirm.setOnClickListener(v -> {
+            viewModel.removeSongFromPlaylist(playlistId, song.getId());
+            Toasty.success(this, "Removed from playlist", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        btnCancel.setOnClickListener(v -> {
+            adapter.notifyDataSetChanged();
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void shareSong(Song song) {
@@ -323,48 +394,111 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        int color = ContextCompat.getColor(this, R.color.colorSecondary);
+
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem item = menu.getItem(i);
+            Drawable icon = item.getIcon();
+            if (icon != null) {
+                icon = DrawableCompat.wrap(icon).mutate();
+                DrawableCompat.setTint(icon, color);
+                item.setIcon(icon);
+            }
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
     private void showRenameDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_rename_playlist, null);
         TextInputEditText editText = dialogView.findViewById(R.id.editPlaylistName);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        Button btnRename = dialogView.findViewById(R.id.btnRename);
+
         editText.setText(currentPlaylist.getName());
         editText.selectAll();
 
-        new AlertDialog.Builder(this)
-                .setTitle("Rename Playlist")
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(dialogView)
-                .setPositiveButton("Rename", (dialog, which) -> {
-                    String newName = editText.getText().toString().trim();
-                    if (!newName.isEmpty()) {
-                        viewModel.renamePlaylist(playlistId, newName);
-                        collapsingToolbar.setTitle(newName);
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        btnRename.setOnClickListener(v -> {
+            String newName = editText.getText().toString().trim();
+            if (!newName.isEmpty()) {
+                viewModel.renamePlaylist(playlistId, newName);
+                collapsingToolbar.setTitle(newName);
+                Toasty.success(this, "Playlist renamed", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     private void showDeleteConfirmation() {
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Playlist")
-                .setMessage("Are you sure you want to delete \"" + currentPlaylist.getName() + "\"?")
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    viewModel.deletePlaylist(currentPlaylist);
-                    finish();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_confirmation, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        Button btnConfirm = dialogView.findViewById(R.id.btnConfirm);
+
+        tvTitle.setText("Delete Playlist");
+        tvMessage.setText("Are you sure you want to delete \"" + currentPlaylist.getName() + "\"?");
+        btnConfirm.setText("Delete");
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        btnConfirm.setOnClickListener(v -> {
+            viewModel.deletePlaylist(currentPlaylist);
+            Toasty.success(this, "Playlist deleted", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+            finish();
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     private void showClearConfirmation() {
-        new AlertDialog.Builder(this)
-                .setTitle("Clear Playlist")
-                .setMessage("Remove all songs from this playlist?")
-                .setPositiveButton("Clear", (dialog, which) -> {
-                    viewModel.clearPlaylist(playlistId);
-                    Toast.makeText(this, "Playlist cleared", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_confirmation, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        Button btnConfirm = dialogView.findViewById(R.id.btnConfirm);
+
+        tvTitle.setText("Clear Playlist");
+        tvMessage.setText("Remove all songs from this playlist?");
+        btnConfirm.setText("Clear");
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        btnConfirm.setOnClickListener(v -> {
+            viewModel.clearPlaylist(playlistId);
+            Toasty.success(this, "Playlist cleared", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     private void bindService() {

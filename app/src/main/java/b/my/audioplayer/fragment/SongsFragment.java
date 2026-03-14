@@ -39,7 +39,6 @@ public class SongsFragment extends Fragment {
     private SongAdapter adapter;
     private TextView emptyText;
     private View progressBar;
-
     private MusicPlaybackService musicService;
     private boolean isBound = false;
 
@@ -147,7 +146,7 @@ public class SongsFragment extends Fragment {
 
     private void observeData() {
         viewModel.getIsScanning().observe(getViewLifecycleOwner(), isScanning ->
-                progressBar.setVisibility(isScanning ? View.VISIBLE : View.GONE));
+                progressBar.setVisibility(View.GONE));
 
         viewModel.getAllSongs().observe(getViewLifecycleOwner(), songs -> {
             List<Song> songList = songs != null ? songs : new ArrayList<>();
@@ -160,10 +159,6 @@ public class SongsFragment extends Fragment {
             recyclerView.post(() -> scrollToPlaying(false));
         });
     }
-
-    // -------------------------------------------------------------------------
-    // ExoPlayer listener - never displaced
-    // -------------------------------------------------------------------------
 
     private void attachPlayerListener() {
         if (!isBound || musicService == null) return;

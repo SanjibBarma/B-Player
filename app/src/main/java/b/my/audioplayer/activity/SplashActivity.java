@@ -9,7 +9,7 @@ import b.my.audioplayer.R;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static final int SPLASH_DURATION = 800;
+    private static final int SPLASH_DURATION = 500;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

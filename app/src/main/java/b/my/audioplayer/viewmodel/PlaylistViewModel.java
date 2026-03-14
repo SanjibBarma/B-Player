@@ -76,22 +76,26 @@ public class PlaylistViewModel extends AndroidViewModel {
     // Add song to playlist
     public void addSongToPlaylist(long playlistId, long songId) {
         executorService.execute(() -> {
-            int currentCount = repository.getSongCountInPlaylist(playlistId);
-            PlaylistSong playlistSong = new PlaylistSong(playlistId, songId, currentCount);
-            repository.addSongToPlaylist(playlistSong);
-            repository.updatePlaylistSongCount(playlistId, currentCount + 1);
+            if (!repository.isSongInPlaylist(playlistId, songId)) {
+                int currentCount = repository.getSongCountInPlaylist(playlistId);
+                PlaylistSong playlistSong = new PlaylistSong(playlistId, songId, currentCount);
+                repository.addSongToPlaylist(playlistSong);
+                repository.updatePlaylistSongCount(playlistId, currentCount + 1);
+            }
         });
     }
 
     // Add multiple songs to playlist
     public void addSongsToPlaylist(long playlistId, List<Long> songIds) {
         executorService.execute(() -> {
-            int currentCount = repository.getSongCountInPlaylist(playlistId);
-            for (int i = 0; i < songIds.size(); i++) {
-                PlaylistSong playlistSong = new PlaylistSong(playlistId, songIds.get(i), currentCount + i);
-                repository.addSongToPlaylist(playlistSong);
+            for (long songId : songIds) {
+                if (!repository.isSongInPlaylist(playlistId, songId)) {
+                    int currentCount = repository.getSongCountInPlaylist(playlistId);
+                    PlaylistSong playlistSong = new PlaylistSong(playlistId, songId, currentCount);
+                    repository.addSongToPlaylist(playlistSong);
+                    repository.updatePlaylistSongCount(playlistId, currentCount + 1);
+                }
             }
-            repository.updatePlaylistSongCount(playlistId, currentCount + songIds.size());
         });
     }
 

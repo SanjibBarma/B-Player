@@ -25,16 +25,14 @@
             android:layout_height="80dp"
             android:id="@+id/ivFavorite"
             android:src="@drawable/ic_favorite_border"
-            android:tint="@color/colorSecondary"
             android:alpha="0.5"/>
 
-        <TextView
+        <b.my.audioplayer.utils.GradientTextView
             android:id="@+id/emptyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No favorite songs yet"
             android:textSize="16sp"
-            android:textColor="@color/colorSecondary"
             android:alpha="0.7"
             android:layout_marginTop="16dp"/>
 

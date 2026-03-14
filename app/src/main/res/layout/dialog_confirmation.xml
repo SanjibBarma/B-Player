@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/song_card_bg"
@@ -11,43 +10,25 @@
         android:id="@+id/tvDialogTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Create Playlist"
+        android:text="Confirmation"
         android:textColor="@color/colorSecondary"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="12dp"/>
 
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <TextView
+        android:id="@+id/tvDialogMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/layoutPlaylistName"
-        app:hintTextColor="@color/colorSecondary"
-        app:boxStrokeColor="@color/colorSecondary"
-        app:boxStrokeWidth="1dp"
-        android:background="@color/colorSurface"
-        app:boxCornerRadiusTopStart="12dp"
-        app:boxCornerRadiusTopEnd="12dp"
-        app:boxCornerRadiusBottomStart="12dp"
-        app:boxCornerRadiusBottomEnd="12dp"
-        app:hintEnabled="true">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editPlaylistName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            android:textColorHint="@color/colorSecondary"
-            android:imeOptions="actionDone"
-            android:inputType="text"
-            android:background="@android:color/transparent"
-            android:maxLines="1" />
-    </com.google.android.material.textfield.TextInputLayout>
+        android:text="Are you sure?"
+        android:textColor="@color/colorSecondary"
+        android:textSize="16sp"
+        android:alpha="0.8"
+        android:layout_marginBottom="24dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
         android:gravity="end"
         android:orientation="horizontal">
 
@@ -61,12 +42,12 @@
             android:alpha="0.7" />
 
         <Button
-            android:id="@+id/btnCreate"
+            android:id="@+id/btnConfirm"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="Create"
+            android:text="Confirm"
             android:textStyle="bold"
             android:textColor="@color/colorSecondary" />
     </LinearLayout>

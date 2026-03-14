@@ -1,8 +1,10 @@
 package b.my.audioplayer.activity;
 
+import android.app.Dialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -29,11 +31,19 @@ public class SettingsActivity extends AppCompatActivity {
     private SwitchMaterial switchVolumeNormalization;
     private LinearLayout btnScanMedia;
     private TextView textAppVersion;
+    Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        dialog = new Dialog(SettingsActivity.this, R.style.TransparentProgressDialog);
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.custom_progress_layout);
+        dialog.setOwnerActivity(SettingsActivity.this);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
@@ -41,6 +51,7 @@ public class SettingsActivity extends AppCompatActivity {
         initViews();
         loadSettings();
         setupListeners();
+        setupObservers();
     }
 
     private void initViews() {
@@ -114,8 +125,16 @@ public class SettingsActivity extends AppCompatActivity {
 
         btnScanMedia.setOnClickListener(v -> {
             viewModel.scanMediaFiles(this);
-            android.widget.Toast.makeText(this, "Scanning media files...",
-                    android.widget.Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void setupObservers() {
+        viewModel.getIsScanning().observe(this, isScanning -> {
+            if (isScanning) {
+                dialog.show();
+            } else {
+                dialog.dismiss();
+            }
         });
     }
 }

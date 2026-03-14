@@ -2,6 +2,7 @@ package b.my.audioplayer.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -178,12 +179,18 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
                 if (listener != null) listener.onSongClick(song, position);
             });
 
-            menuButton.setOnClickListener(v -> showPopupMenu(v, song));
+            menuButton.setOnClickListener(v -> showPopupMenu(v, song, position));
         }
 
-        private void showPopupMenu(View view, Song song) {
+        private void showPopupMenu(View view, Song song, int position) {
             PopupMenu popup = new PopupMenu(context, view);
             popup.inflate(R.menu.menu_song_options);
+            
+            MenuItem favoriteItem = popup.getMenu().findItem(R.id.action_toggle_favorite);
+            if (favoriteItem != null) {
+                favoriteItem.setTitle(song.isFavorite() ? "Remove from Favorites" : "Add to Favorites");
+            }
+
             popup.setOnMenuItemClickListener(item -> {
                 if (menuListener == null) return false;
                 int itemId = item.getItemId();
@@ -192,6 +199,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
                     return true;
                 } else if (itemId == R.id.action_toggle_favorite) {
                     menuListener.onToggleFavorite(song);
+                    notifyItemChanged(position); // Immediate UI feedback
                     return true;
                 } else if (itemId == R.id.action_delete) {
                     menuListener.onDelete(song);

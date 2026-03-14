@@ -8,8 +8,8 @@ import java.util.List;
 @Dao
 public interface SongDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(Song song);
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    long insert(Song song);
 
     @Update
     void update(Song song);

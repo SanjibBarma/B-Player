@@ -9,17 +9,25 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.Player;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
@@ -443,17 +451,71 @@ public class NowPlayingActivity extends AppCompatActivity {
 
     private void showSleepTimerDialog() {
         String[] options = {"10 minutes", "20 minutes", "30 minutes", "60 minutes", "Cancel timer"};
-        new android.app.AlertDialog.Builder(this)
-                .setTitle("Sleep Timer")
-                .setItems(options, (dialog, which) -> {
-                    if (which == 4) {
-                        cancelSleepTimer();
-                        return;
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_options_list, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        RecyclerView rvOptions = dialogView.findViewById(R.id.recyclerViewOptions);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        tvTitle.setText("Sleep Timer");
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        dialog.show();
+
+        // Optional: Rounded corners and proper width
+        if (dialog.getWindow() != null) {
+//            dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_dialog_rounded);
+            dialog.getWindow().setLayout(
+                    (int)(getResources().getDisplayMetrics().widthPixels * 0.9), // 90% of screen width
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
+        rvOptions.setLayoutManager(new LinearLayoutManager(this));
+        rvOptions.setAdapter(new RecyclerView.Adapter<OptionViewHolder>() {
+            @NonNull
+            @Override
+            public OptionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dialog_option, parent, false);
+                return new OptionViewHolder(view);
+            }
+
+            @Override
+            public void onBindViewHolder(@NonNull OptionViewHolder holder, int position) {
+                holder.tvOption.setText(options[position]);
+                holder.itemView.setOnClickListener(v -> {
+                    if (position == 4) {
+                        Toasty.info(NowPlayingActivity.this, "Sleep timer cancelled", Toast.LENGTH_SHORT).show();
+                    } else {
+                        int[] mins = {10, 20, 30, 60};
+                        int m = mins[position];
+                        handler.postDelayed(() -> {
+                            if (isBound) musicService.pause();
+                        }, m * 60 * 1000L);
+                        Toasty.success(NowPlayingActivity.this, "Sleep timer set for " + m + " minutes", Toast.LENGTH_SHORT).show();
                     }
-                    int[] mins = {10, 20, 30, 60};
-                    setSleepTimer(mins[which]);
-                })
-                .show();
+                    dialog.dismiss();
+                });
+            }
+
+            @Override
+            public int getItemCount() {
+                return options.length;
+            }
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+    }
+
+    private static class OptionViewHolder extends RecyclerView.ViewHolder {
+        TextView tvOption;
+        OptionViewHolder(View view) {
+            super(view);
+            tvOption = view.findViewById(R.id.tvOptionName);
+        }
     }
 
     private void setSleepTimer(int minutes) {
