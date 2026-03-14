@@ -1,7 +1,5 @@
 package b.my.audioplayer.adapter;
 
-import static b.my.audioplayer.utils.Constants.textGradient;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -73,12 +71,11 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         }
 
         public void bind(Album album) {
-            textGradient(albumName);
-            textGradient(artistName);
-            textGradient(songCount);
             albumName.setText(album.getName());
             artistName.setText(album.getArtist());
             songCount.setText(album.getSongCount() + " songs");
+            albumName.setSelected(true);
+            artistName.setSelected(true);
 
             if (album.getAlbumArt() != null && !album.getAlbumArt().isEmpty()) {
                 Glide.with(context)

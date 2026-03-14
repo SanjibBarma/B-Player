@@ -66,8 +66,6 @@ dependencies {
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
 
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
-
     // Preferences
     implementation("androidx.preference:preference:1.2.1")
 

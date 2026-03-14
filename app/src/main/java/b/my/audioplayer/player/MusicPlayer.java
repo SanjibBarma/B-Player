@@ -144,7 +144,7 @@ public class MusicPlayer {
             shufflePlaylist();
         }
 
-        preparePlaylist();
+        preparePlaylist(0);
     }
 
     public void setPlaylist(List<Song> songs, int startIndex) {
@@ -168,10 +168,10 @@ public class MusicPlayer {
             }
         }
 
-        preparePlaylist();
+        preparePlaylist(0);
     }
 
-    private void preparePlaylist() {
+    private void preparePlaylist(long startPositionMs) {
         if (currentPlaylist == null || currentPlaylist.isEmpty()) return;
 
         List<MediaItem> mediaItems = new ArrayList<>();
@@ -180,7 +180,7 @@ public class MusicPlayer {
             mediaItems.add(mediaItem);
         }
         
-        exoPlayer.setMediaItems(mediaItems, currentIndex, exoPlayer.getCurrentPosition());
+        exoPlayer.setMediaItems(mediaItems, currentIndex, startPositionMs);
         exoPlayer.prepare();
     }
 
@@ -264,6 +264,7 @@ public class MusicPlayer {
 
     public void toggleShuffle() {
         isShuffleEnabled = !isShuffleEnabled;
+        long currentPos = exoPlayer.getCurrentPosition();
 
         Song currentSong = getCurrentSong();
         if (isShuffleEnabled) {
@@ -276,7 +277,7 @@ public class MusicPlayer {
             }
         }
 
-        preparePlaylist();
+        preparePlaylist(currentPos);
         preferenceHelper.setShuffleEnabled(isShuffleEnabled);
     }
 

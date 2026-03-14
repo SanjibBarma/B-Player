@@ -1,7 +1,5 @@
 package b.my.audioplayer.activity;
 
-import static b.my.audioplayer.utils.Constants.textGradient;
-
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -42,11 +40,6 @@ import b.my.audioplayer.utils.Constants;
 import b.my.audioplayer.utils.PermissionHelper;
 import b.my.audioplayer.viewmodel.MainViewModel;
 
-// No longer implements MusicPlayer.PlayerCallback — that single-slot callback gets
-// displaced by SongsFragment / NowPlayingActivity calling setCallback(), which is
-// exactly why next/previous from the mini player stopped updating the UI.
-// We now attach a Player.Listener directly to ExoPlayer, which supports multiple
-// listeners and is NEVER displaced by anyone.
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
@@ -115,9 +108,7 @@ public class MainActivity extends AppCompatActivity {
     private void setupToolbar() {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) getSupportActionBar().setTitle("B Player");
-        textGradient(tvAppBarTitle);
-        textGradient(miniPlayerTitle);
-        textGradient(miniPlayerArtist);
+        miniPlayerTitle.setSelected(true);
     }
 
     // Cached fragment instances — never re-created, just shown/hidden.

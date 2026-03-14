@@ -1,7 +1,5 @@
 package b.my.audioplayer.adapter;
 
-import static b.my.audioplayer.utils.Constants.textGradient;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -151,10 +149,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
             // Start Marquee animation only if the song is playing
             title.setSelected(isThisPlaying && playing);
             artist.setSelected(isThisPlaying && playing);
-
-            textGradient(title);
-            textGradient(artist);
-            textGradient(duration);
 
             if (song.getAlbumArt() != null && !song.getAlbumArt().isEmpty()) {
                 Glide.with(context)

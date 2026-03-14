@@ -29,8 +29,11 @@ public class LyricsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lyrics);
 
+        // Try to get song object from Intent
         currentSong = (Song) getIntent().getSerializableExtra(Constants.EXTRA_SONG);
+        
         if (currentSong == null) {
+            // Fallback if song object is not found
             finish();
             return;
         }
@@ -50,6 +53,9 @@ public class LyricsActivity extends AppCompatActivity {
         songTitle.setText(currentSong.getTitle());
         artistName.setText(currentSong.getArtist());
 
+        songTitle.setSelected(true);
+        artistName.setSelected(true);
+
         btnBack.setOnClickListener(v -> onBackPressed());
         btnSearch.setOnClickListener(v -> searchLyricsOnline());
     }
@@ -58,18 +64,21 @@ public class LyricsActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         lyricsContent.setVisibility(View.GONE);
 
-        // Try to load .lrc file
-        String lrcPath = currentSong.getPath().replaceAll("\\.[^.]+$", ".lrc");
-        File lrcFile = new File(lrcPath);
+        // Try to load .lrc file based on song path
+        if (currentSong.getPath() != null) {
+            String lrcPath = currentSong.getPath().replaceAll("\\.[^.]+$", ".lrc");
+            File lrcFile = new File(lrcPath);
 
-        if (lrcFile.exists()) {
-            loadLyricsFromFile(lrcFile);
-        } else {
-            // Try to load embedded lyrics or show no lyrics message
-            progressBar.setVisibility(View.GONE);
-            lyricsContent.setVisibility(View.VISIBLE);
-            lyricsContent.setText("No lyrics available\n\nTap the search icon to find lyrics online");
+            if (lrcFile.exists()) {
+                loadLyricsFromFile(lrcFile);
+                return;
+            }
         }
+        
+        // If no file found, show default message
+        progressBar.setVisibility(View.GONE);
+        lyricsContent.setVisibility(View.VISIBLE);
+        lyricsContent.setText("No lyrics available\n\nTap the search icon to find lyrics online");
     }
 
     private void loadLyricsFromFile(File lrcFile) {
@@ -109,7 +118,6 @@ public class LyricsActivity extends AppCompatActivity {
     }
 
     private void searchLyricsOnline() {
-        // Open browser to search lyrics
         String query = currentSong.getTitle() + " " + currentSong.getArtist() + " lyrics";
         String url = "https://www.google.com/search?q=" + android.net.Uri.encode(query);
         android.content.Intent intent = new android.content.Intent(

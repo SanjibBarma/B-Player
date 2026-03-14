@@ -26,17 +26,15 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_arrow_down"
-                app:tint="@color/colorSecondary" />
+                android:src="@drawable/ic_arrow_down" />
 
-            <TextView
+            <b.my.audioplayer.utils.GradientTextView
                 android:id="@+id/tvPlayingTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="Now Playing"
-                android:textColor="@color/colorSecondary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -91,27 +89,25 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <TextView
+            <b.my.audioplayer.utils.GradientTextView
                 android:id="@+id/nowPlayingTitle"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="12dp"
                 android:layout_marginRight="12dp"
                 android:ellipsize="marquee"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:gravity="center"
                 android:marqueeRepeatLimit="marquee_forever"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
-                android:text="This is a very long song title that will scroll horizontally like a marquee"
-                android:textColor="@color/colorSecondary"
+                android:text="Song Title"
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
-            <TextView
+            <b.my.audioplayer.utils.GradientTextView
                 android:id="@+id/nowPlayingArtist"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="40dp"
                 android:layout_marginTop="8dp"
@@ -119,12 +115,10 @@
                 android:ellipsize="marquee"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:gravity="center"
                 android:marqueeRepeatLimit="marquee_forever"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
                 android:text="Artist Name"
-                android:textColor="@color/colorSecondary"
                 android:textSize="16sp" />
 
         </LinearLayout>
@@ -141,19 +135,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:progressTint="@color/colorSecondary"
-                android:thumbTint="?attr/colorPrimary" />
+                android:thumbTint="@android:color/darker_gray" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:id="@+id/currentTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="00:00"
-                    android:textColor="@color/colorSecondary"
                     android:textSize="12sp" />
 
                 <View
@@ -161,12 +154,11 @@
                     android:layout_height="0dp"
                     android:layout_weight="1" />
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:id="@+id/totalTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="00:00"
-                    android:textColor="@color/colorSecondary"
                     android:textSize="12sp" />
 
             </LinearLayout>

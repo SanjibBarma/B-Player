@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="8dp"/>
+        android:paddingBottom="80dp"/>
 
     <LinearLayout
         android:id="@+id/emptyState"
@@ -24,7 +24,8 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:id="@+id/ivFavorite"
-            android:background="@drawable/ic_favorite_border"
+            android:src="@drawable/ic_favorite_border"
+            android:tint="@color/colorSecondary"
             android:alpha="0.5"/>
 
         <TextView
@@ -33,9 +34,9 @@
             android:layout_height="wrap_content"
             android:text="No favorite songs yet"
             android:textSize="16sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:layout_marginTop="16dp"
-            android:visibility="gone"/>
+            android:textColor="@color/colorSecondary"
+            android:alpha="0.7"
+            android:layout_marginTop="16dp"/>
 
     </LinearLayout>
 

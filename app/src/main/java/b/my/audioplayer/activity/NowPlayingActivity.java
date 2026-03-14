@@ -1,7 +1,5 @@
 package b.my.audioplayer.activity;
 
-import static b.my.audioplayer.utils.Constants.textGradient;
-
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -23,7 +21,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.Player;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import b.my.audioplayer.R;
 import b.my.audioplayer.model.Song;
@@ -31,10 +28,11 @@ import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.utils.WaveView;
 import b.my.audioplayer.viewmodel.MainViewModel;
 import b.my.audioplayer.viewmodel.NowPlayingViewModel;
-
-import java.util.concurrent.TimeUnit;
-
+import b.my.audioplayer.utils.Constants;
 import es.dmoral.toasty.Toasty;
+
+import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 
 public class NowPlayingActivity extends AppCompatActivity {
 
@@ -45,20 +43,21 @@ public class NowPlayingActivity extends AppCompatActivity {
     private MusicPlaybackService musicService;
     private boolean isBound = false;
 
-    // Views
     private ImageView albumArt;
     private TextView songTitle;
     private TextView artistName;
-    private SeekBar seekBar;
     private TextView currentTime;
-    private TextView totalTime, tvPlayingTitle;
-    private FloatingActionButton btnPlayPause;
+    private TextView totalTime;
+    private TextView tvPlayingTitle;
+    private SeekBar seekBar;
+    private ImageButton btnPlayPause;
     private ImageButton btnPrevious;
     private ImageButton btnNext;
     private ImageButton btnShuffle;
     private ImageButton btnRepeat;
     private ImageButton btnFavorite;
     private ImageButton btnBack;
+    private ImageButton btnLyrics;
     private WaveView waveView;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -99,27 +98,23 @@ public class NowPlayingActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        albumArt     = findViewById(R.id.nowPlayingAlbumArt);
-        songTitle    = findViewById(R.id.nowPlayingTitle);
-        artistName   = findViewById(R.id.nowPlayingArtist);
-        seekBar      = findViewById(R.id.seekBar);
-        currentTime  = findViewById(R.id.currentTime);
-        totalTime    = findViewById(R.id.totalTime);
+        albumArt = findViewById(R.id.nowPlayingAlbumArt);
+        songTitle = findViewById(R.id.nowPlayingTitle);
+        artistName = findViewById(R.id.nowPlayingArtist);
+        seekBar = findViewById(R.id.seekBar);
+        currentTime = findViewById(R.id.currentTime);
+        totalTime = findViewById(R.id.totalTime);
         btnPlayPause = findViewById(R.id.btnPlayPause);
-        btnPrevious  = findViewById(R.id.btnPrevious);
-        btnNext      = findViewById(R.id.btnNext);
-        btnShuffle   = findViewById(R.id.btnShuffle);
-        btnRepeat    = findViewById(R.id.btnRepeat);
-        btnFavorite  = findViewById(R.id.btnFavorite);
-        btnBack      = findViewById(R.id.btnBack);
+        btnPrevious = findViewById(R.id.btnPrevious);
+        btnNext = findViewById(R.id.btnNext);
+        btnShuffle = findViewById(R.id.btnShuffle);
+        btnRepeat = findViewById(R.id.btnRepeat);
+        btnFavorite = findViewById(R.id.btnFavorite);
+        btnBack = findViewById(R.id.btnBack);
+        btnLyrics = findViewById(R.id.btnLyrics);
         tvPlayingTitle = findViewById(R.id.tvPlayingTitle);
-        waveView     = findViewById(R.id.waveView);
+        waveView = findViewById(R.id.waveView);
 
-        textGradient(tvPlayingTitle);
-        textGradient(currentTime);
-        textGradient(totalTime);
-        textGradient(songTitle);
-        textGradient(artistName);
 
         songTitle.setSelected(true);
     }
@@ -129,21 +124,18 @@ public class NowPlayingActivity extends AppCompatActivity {
 
         btnPlayPause.setOnClickListener(v -> {
             if (isBound && musicService != null) {
-                // FIX: Use service methods instead of direct MusicPlayer access
                 musicService.togglePlayback();
             }
         });
 
         btnPrevious.setOnClickListener(v -> {
             if (isBound && musicService != null) {
-                // FIX: Use service method
                 musicService.playPrevious();
             }
         });
 
         btnNext.setOnClickListener(v -> {
             if (isBound && musicService != null) {
-                // FIX: Use service method
                 musicService.playNext();
             }
         });
@@ -180,6 +172,15 @@ public class NowPlayingActivity extends AppCompatActivity {
                 Toasty.success(this,
                         currentSong.isFavorite() ? "Added to Favorites" : "Removed from Favorites",
                         Toasty.LENGTH_SHORT, true).show();
+            }
+        });
+
+        btnLyrics.setOnClickListener(v -> {
+            Song currentSong = viewModel.getCurrentSong().getValue();
+            if (currentSong != null) {
+                Intent intent = new Intent(this, LyricsActivity.class);
+                intent.putExtra(Constants.EXTRA_SONG, (Serializable) currentSong);
+                startActivity(intent);
             }
         });
 
@@ -386,7 +387,7 @@ public class NowPlayingActivity extends AppCompatActivity {
                     currentTime.setText(formatTime(position));
                     viewModel.setCurrentPosition(position);
                 }
-                handler.postDelayed(this, 500);
+                handler.postDelayed(this, 1000);
             }
         };
         handler.post(updateSeekBarRunnable);
@@ -411,7 +412,10 @@ public class NowPlayingActivity extends AppCompatActivity {
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Sleep Timer")
                 .setItems(options, (dialog, which) -> {
-                    if (which == 4) { cancelSleepTimer(); return; }
+                    if (which == 4) {
+                        cancelSleepTimer();
+                        return;
+                    }
                     int[] mins = {10, 20, 30, 60};
                     setSleepTimer(mins[which]);
                 })

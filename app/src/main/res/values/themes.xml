@@ -12,10 +12,17 @@
         <item name="colorOnSurfaceVariant">@color/colorOnSurfaceVariant</item>
         <item name="colorOutline">@color/colorOutline</item>
         <item name="android:statusBarColor">@color/colorPrimary</item>
-        <item name="android:navigationBarColor">@color/colorSurface</item>
+        <item name="android:navigationBarColor">@color/colorPrimaryDark</item>
 
         <!-- Toolbar and SearchView Styles -->
         <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
+
+        <!-- Popup Menu and Dialog Styles -->
+        <item name="actionBarPopupTheme">@style/Theme.BPlayer.PopupOverlay</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/TextAppearance.App.PopupMenu</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/TextAppearance.App.PopupMenu</item>
+        <item name="dialogTheme">@style/Theme.BPlayer.Dialog</item>
+        <item name="alertDialogTheme">@style/Theme.BPlayer.Dialog</item>
     </style>
 
     <style name="Widget.App.Toolbar" parent="Widget.AppCompat.Toolbar">
@@ -31,5 +38,34 @@
         <item name="android:textColorPrimary">@color/colorSecondary</item>
         <item name="android:textColorHint">@color/colorSecondary</item>
         <item name="editTextColor">@color/colorSecondary</item>
+    </style>
+
+    <!-- Popup Menu Style -->
+    <style name="Theme.BPlayer.PopupOverlay" parent="ThemeOverlay.AppCompat.Light">
+        <item name="android:panelBackground">@drawable/song_card_bg</item>
+        <item name="android:itemBackground">@android:color/transparent</item>
+        <item name="android:textColorPrimary">@color/colorSecondary</item>
+    </style>
+
+    <style name="TextAppearance.App.PopupMenu" parent="TextAppearance.AppCompat.Widget.PopupMenu.Large">
+        <item name="android:textColor">@color/colorSecondary</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <!-- Dialog Style -->
+    <style name="Theme.BPlayer.Dialog" parent="Theme.Material3.Light.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:textColorPrimary">@color/colorSecondary</item>
+        <item name="colorSurface">@color/colorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.App.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">@color/colorSecondary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.App.Title.Collapsed" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/colorSecondary</item>
+        <item name="android:textStyle">bold</item>
     </style>
 </resources>

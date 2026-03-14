@@ -10,7 +10,6 @@ import android.graphics.Bitmap;
 import android.widget.RemoteViews;
 import b.my.audioplayer.R;
 import b.my.audioplayer.activity.MainActivity;
-import b.my.audioplayer.activity.NowPlayingActivity;
 import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.utils.AlbumArtHelper;
 import b.my.audioplayer.utils.Constants;
@@ -86,8 +85,10 @@ public class MusicWidgetProvider extends AppWidgetProvider {
                 new ComponentName(context, MusicWidgetProvider.class)
         );
 
-        for (int widgetId : appWidgetIds) {
-            updateWidget(context, appWidgetManager, widgetId);
+        if (appWidgetIds != null) {
+            for (int widgetId : appWidgetIds) {
+                updateWidget(context, appWidgetManager, widgetId);
+            }
         }
     }
 

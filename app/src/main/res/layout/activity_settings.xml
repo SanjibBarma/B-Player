@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="?attr/colorSurface">
+    android:background="@drawable/ic_main_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,103 +13,118 @@
         android:orientation="vertical">
 
         <!-- Toolbar -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical">
-
-            <ImageButton
-                android:id="@+id/btnBackSettings"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_arrow_back"
-                app:tint="?attr/colorOnSurface"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Settings"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface"
-                android:layout_marginStart="16dp"/>
-
-        </LinearLayout>
-
-        <!-- Appearance Section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Appearance"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="16dp"/>
-
-        <!-- Dark Mode -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_dark_mode"
-                app:tint="?attr/colorOnSurface"/>
+            android:layout_margin="16dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="16dp">
+                android:background="@drawable/song_card_bg"
+                android:orientation="horizontal"
+                android:padding="4dp"
+                android:gravity="center_vertical">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Dark Mode"
-                    android:textSize="16sp"
-                    android:textColor="?attr/colorOnSurface"/>
+                <ImageButton
+                    android:id="@+id/btnBackSettings"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_arrow_back"/>
 
-                <TextView
-                    android:layout_width="match_parent"
+                <b.my.audioplayer.utils.GradientTextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Enable dark theme"
-                    android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurfaceVariant"/>
+                    android:text="Settings"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="16dp"/>
 
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchDarkMode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+<!--        &lt;!&ndash; Appearance Section &ndash;&gt;-->
+<!--        <TextView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Appearance"-->
+<!--            android:textSize="14sp"-->
+<!--            android:textStyle="bold"-->
+<!--            android:textColor="@color/colorSecondary"-->
+<!--            android:paddingHorizontal="16dp"-->
+<!--            android:paddingTop="16dp"-->
+<!--            android:alpha="0.8"/>-->
 
-        </LinearLayout>
+<!--        &lt;!&ndash; Dark Mode &ndash;&gt;-->
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:padding="16dp"-->
+<!--            android:gravity="center_vertical">-->
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutline"
-            android:layout_marginHorizontal="16dp"/>
+<!--            <ImageView-->
+<!--                android:layout_width="24dp"-->
+<!--                android:layout_height="24dp"-->
+<!--                android:src="@drawable/ic_dark_mode"-->
+<!--                app:tint="@color/colorSecondary"/>-->
+
+<!--            <LinearLayout-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_weight="1"-->
+<!--                android:orientation="vertical"-->
+<!--                android:layout_marginStart="16dp">-->
+
+<!--                <TextView-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Dark Mode"-->
+<!--                    android:textSize="16sp"-->
+<!--                    android:textColor="@color/colorSecondary"/>-->
+
+<!--                <TextView-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Enable dark theme"-->
+<!--                    android:textSize="14sp"-->
+<!--                    android:textColor="@color/colorSecondary"-->
+<!--                    android:alpha="0.6"/>-->
+
+<!--            </LinearLayout>-->
+
+<!--            <com.google.android.material.switchmaterial.SwitchMaterial-->
+<!--                android:id="@+id/switchDarkMode"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                app:thumbTint="@color/colorSecondary"-->
+<!--                app:trackTint="@color/colorSecondary"/>-->
+
+<!--        </LinearLayout>-->
+
+<!--        <View-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="1dp"-->
+<!--            android:background="@color/colorSecondary"-->
+<!--            android:alpha="0.2"-->
+<!--            android:layout_marginHorizontal="16dp"/>-->
 
         <!-- Playback Section -->
-        <TextView
+        <b.my.audioplayer.utils.GradientTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Playback"
-            android:textSize="14sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="@color/colorSecondary"
             android:paddingHorizontal="16dp"
-            android:paddingTop="24dp"/>
+            android:paddingTop="24dp"
+            android:alpha="0.8"/>
 
         <!-- Crossfade -->
         <LinearLayout
@@ -122,8 +137,7 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_crossfade"
-                app:tint="?attr/colorOnSurface"/>
+                android:src="@drawable/ic_crossfade" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -132,26 +146,29 @@
                 android:orientation="vertical"
                 android:layout_marginStart="16dp">
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Crossfade"
                     android:textSize="16sp"
-                    android:textColor="?attr/colorOnSurface"/>
+                    android:textColor="@color/colorSecondary"/>
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Smooth transition between songs"
                     android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurfaceVariant"/>
+                    android:textColor="@color/colorSecondary"
+                    android:alpha="0.6"/>
 
             </LinearLayout>
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchCrossfade"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                app:thumbTint="@android:color/darker_gray"
+                app:trackTint="@color/colorSecondary"/>
 
         </LinearLayout>
 
@@ -165,13 +182,14 @@
             android:paddingBottom="16dp"
             android:visibility="gone">
 
-            <TextView
+            <b.my.audioplayer.utils.GradientTextView
                 android:id="@+id/textCrossfadeDuration"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Duration: 3 seconds"
                 android:textSize="14sp"
-                android:textColor="?attr/colorOnSurfaceVariant"/>
+                android:textColor="@color/colorSecondary"
+                android:alpha="0.6"/>
 
             <SeekBar
                 android:id="@+id/seekBarCrossfade"
@@ -179,27 +197,28 @@
                 android:layout_height="wrap_content"
                 android:max="10"
                 android:progress="3"
-                android:progressTint="?attr/colorPrimary"
-                android:thumbTint="?attr/colorPrimary"/>
+                android:progressTint="@color/colorSecondary"
+                android:thumbTint="@color/colorSecondary"/>
 
         </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="?attr/colorOutline"
+            android:background="@color/colorSecondary"
+            android:alpha="0.2"
             android:layout_marginHorizontal="16dp"/>
 
         <!-- Audio Section -->
-        <TextView
+        <b.my.audioplayer.utils.GradientTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Audio"
-            android:textSize="14sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
             android:paddingHorizontal="16dp"
-            android:paddingTop="24dp"/>
+            android:paddingTop="24dp"
+            android:alpha="0.8"/>
 
         <!-- Volume Normalization -->
         <LinearLayout
@@ -212,8 +231,7 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_volume"
-                app:tint="?attr/colorOnSurface"/>
+                android:src="@drawable/ic_volume"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -222,45 +240,47 @@
                 android:orientation="vertical"
                 android:layout_marginStart="16dp">
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Volume Normalization"
-                    android:textSize="16sp"
-                    android:textColor="?attr/colorOnSurface"/>
+                    android:textSize="16sp"/>
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Normalize playback volume"
                     android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurfaceVariant"/>
+                    android:alpha="0.6"/>
 
             </LinearLayout>
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchVolumeNormalization"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                app:thumbTint="@android:color/darker_gray"
+                app:trackTint="@color/colorSecondary"/>
 
         </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="?attr/colorOutline"
+            android:background="@color/colorSecondary"
+            android:alpha="0.2"
             android:layout_marginHorizontal="16dp"/>
 
         <!-- Library Section -->
-        <TextView
+        <b.my.audioplayer.utils.GradientTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Library"
-            android:textSize="14sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
             android:paddingHorizontal="16dp"
-            android:paddingTop="24dp"/>
+            android:paddingTop="24dp"
+            android:alpha="0.8"/>
 
         <!-- Scan Media -->
         <LinearLayout
@@ -275,8 +295,7 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_refresh"
-                app:tint="?attr/colorOnSurface"/>
+                android:src="@drawable/ic_refresh"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -285,19 +304,18 @@
                 android:orientation="vertical"
                 android:layout_marginStart="16dp">
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Scan Media"
-                    android:textSize="16sp"
-                    android:textColor="?attr/colorOnSurface"/>
+                    android:textSize="16sp"/>
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Rescan device for audio files"
                     android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurfaceVariant"/>
+                    android:alpha="0.6"/>
 
             </LinearLayout>
 
@@ -306,19 +324,20 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="?attr/colorOutline"
+            android:background="@color/colorSecondary"
+            android:alpha="0.2"
             android:layout_marginHorizontal="16dp"/>
 
         <!-- About Section -->
-        <TextView
+        <b.my.audioplayer.utils.GradientTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="About"
-            android:textSize="14sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
             android:paddingHorizontal="16dp"
-            android:paddingTop="24dp"/>
+            android:paddingTop="24dp"
+            android:alpha="0.8"/>
 
         <!-- App Version -->
         <LinearLayout
@@ -331,8 +350,7 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_info"
-                app:tint="?attr/colorOnSurface"/>
+                android:src="@drawable/ic_info"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -341,20 +359,19 @@
                 android:orientation="vertical"
                 android:layout_marginStart="16dp">
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Version"
-                    android:textSize="16sp"
-                    android:textColor="?attr/colorOnSurface"/>
+                    android:textSize="16sp"/>
 
-                <TextView
+                <b.my.audioplayer.utils.GradientTextView
                     android:id="@+id/textAppVersion"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="1.0.0"
                     android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurfaceVariant"/>
+                    android:alpha="0.6"/>
 
             </LinearLayout>
 

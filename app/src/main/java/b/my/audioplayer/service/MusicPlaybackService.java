@@ -21,6 +21,7 @@ import b.my.audioplayer.model.Song;
 import b.my.audioplayer.player.MusicPlayer;
 import b.my.audioplayer.utils.Constants;
 import b.my.audioplayer.widget.MusicWidgetProvider;
+import b.my.audioplayer.widget.MusicWidgetProviderLarge;
 
 public class MusicPlaybackService extends LifecycleService
         implements MusicPlayer.PlayerCallback,
@@ -308,7 +309,7 @@ public class MusicPlaybackService extends LifecycleService
         long duration = musicPlayer != null ? musicPlayer.getDuration() : 0L;
         if (notificationManager != null)
             notificationManager.updateNotification(song, isPlaying, position);
-        updateWidget(song, isPlaying, position, duration);
+        updateWidgets(song, isPlaying, position, duration);
     }
 
     @Override
@@ -317,29 +318,33 @@ public class MusicPlaybackService extends LifecycleService
         long duration = musicPlayer != null ? musicPlayer.getDuration() : 0L;
         if (notificationManager != null)
             notificationManager.updateNotification(song, isPlaying, 0L);
-        updateWidget(song, isPlaying, 0L, duration);
+        updateWidgets(song, isPlaying, 0L, duration);
     }
 
     @Override
     public void onPositionChanged(long position, long duration) {
         Song song = musicPlayer != null ? musicPlayer.getCurrentSong() : null;
         boolean isPlaying = musicPlayer != null && musicPlayer.isPlaying();
-        updateWidget(song, isPlaying, position, duration);
+        updateWidgets(song, isPlaying, position, duration);
     }
 
     @Override
     public void onPlaybackError(String message) {
     }
 
-    private void updateWidget(Song song, boolean isPlaying, long position, long duration) {
+    private void updateWidgets(Song song, boolean isPlaying, long position, long duration) {
+        String title = song != null ? song.getTitle() : "No song playing";
+        String artist = song != null ? song.getArtist() : "B Player";
+        String albumArt = song != null ? song.getAlbumArt() : null;
+
+        // Update Small Widget
         MusicWidgetProvider.updateWidgetInfo(
-                this,
-                song != null ? song.getTitle() : null,
-                song != null ? song.getArtist() : null,
-                song != null ? song.getAlbumArt() : null,
-                isPlaying,
-                position,
-                duration
+                this, title, artist, albumArt, isPlaying, position, duration
+        );
+
+        // Update Large Widget
+        MusicWidgetProviderLarge.updateWidgetInfo(
+                this, title, artist, albumArt, isPlaying, position, duration
         );
     }
 }

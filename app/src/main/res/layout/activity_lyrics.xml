@@ -1,76 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="@drawable/ic_main_bg"
     android:fitsSystemWindows="true"
-    android:background="?attr/colorSurface">
+    android:orientation="vertical">
 
     <!-- Toolbar -->
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="6dp"
+        app:strokeWidth="0dp">
 
-        <ImageButton
-            android:id="@+id/btnBackLyrics"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_arrow_back"
-            app:tint="?attr/colorOnSurface"/>
-
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Lyrics"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginStart="16dp"/>
+            android:background="@drawable/song_card_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="4dp">
 
-        <ImageButton
-            android:id="@+id/btnSearchLyrics"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_search"
-            app:tint="?attr/colorOnSurface"/>
+            <ImageButton
+                android:id="@+id/btnBackLyrics"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back" />
 
-    </LinearLayout>
+            <b.my.audioplayer.utils.GradientTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:text="Lyrics"
+                android:textColor="@color/colorSecondary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btnSearchLyrics"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_search" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Song Info -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="vertical"
-        android:paddingHorizontal="16dp"
-        android:gravity="center">
+        android:paddingHorizontal="16dp">
 
-        <TextView
+        <b.my.audioplayer.utils.GradientTextView
             android:id="@+id/lyricsSongTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
             android:text="Song Title"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:gravity="center"/>
+            android:textStyle="bold" />
 
-        <TextView
+        <b.my.audioplayer.utils.GradientTextView
             android:id="@+id/lyricsArtistName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Artist Name"
-            android:textSize="14sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginLeft="40dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="40dp"
+            android:alpha="0.7"
             android:gravity="center"
-            android:layout_marginTop="4dp"/>
+            android:singleLine="true"
+            android:text="Artist Name"
+            android:textSize="14sp" />
 
     </LinearLayout>
 
@@ -81,15 +99,14 @@
         android:layout_weight="1"
         android:padding="24dp">
 
-        <TextView
+        <b.my.audioplayer.utils.GradientTextView
             android:id="@+id/lyricsContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No lyrics available"
-            android:textSize="16sp"
-            android:textColor="?attr/colorOnSurface"
+            android:gravity="center"
             android:lineSpacingMultiplier="1.5"
-            android:gravity="center"/>
+            android:text="No lyrics available"
+            android:textSize="16sp" />
 
     </ScrollView>
 
@@ -99,6 +116,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:visibility="gone"/>
+        android:progressTint="@color/colorSecondary"
+        android:visibility="gone" />
 
 </LinearLayout>

@@ -8,13 +8,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -38,7 +37,6 @@ public class PlaylistsFragment extends Fragment {
     private RecyclerView recyclerView;
     private PlaylistAdapter adapter;
     private TextView emptyText;
-    private FloatingActionButton fabCreatePlaylist;
 
     @Nullable
     @Override
@@ -61,7 +59,7 @@ public class PlaylistsFragment extends Fragment {
     private void initViews(View view) {
         recyclerView = view.findViewById(R.id.recyclerViewPlaylists);
         emptyText = view.findViewById(R.id.emptyText);
-        fabCreatePlaylist = view.findViewById(R.id.fabCreatePlaylist);
+        FloatingActionButton fabCreatePlaylist = view.findViewById(R.id.fabCreatePlaylist);
 
         fabCreatePlaylist.setOnClickListener(v -> showCreatePlaylistDialog());
     }
@@ -107,66 +105,119 @@ public class PlaylistsFragment extends Fragment {
         View dialogView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.dialog_create_playlist, null);
 
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
         TextInputEditText editText = dialogView.findViewById(R.id.editPlaylistName);
-        TextInputLayout layout = dialogView.findViewById(R.id.layoutPlaylistName);
         Button btnCreate = dialogView.findViewById(R.id.btnCreate);
         Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        tvTitle.setText("Create Playlist");
+        btnCreate.setText("Create");
 
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setView(dialogView)
                 .create();
 
-        // Make dialog background fully transparent
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
-        dialog.show();
-
-        // Create Button Action
         btnCreate.setOnClickListener(v -> {
-            String name = editText.getText().toString().trim();
-            if (!name.isEmpty()) {
-                viewModel.createPlaylist(name);
-                Toasty.success(requireContext(), "Playlist created", Toasty.LENGTH_SHORT).show();
-                dialog.dismiss();
-            } else {
-                Toasty.warning(requireContext(), "Enter a valid name...", Toasty.LENGTH_SHORT).show();
+            if (editText.getText() != null) {
+                String name = editText.getText().toString().trim();
+                if (!name.isEmpty()) {
+                    viewModel.createPlaylist(name);
+                    Toasty.success(requireContext(), "Playlist created", Toasty.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                } else {
+                    Toasty.warning(requireContext(), "Enter a valid name...", Toasty.LENGTH_SHORT).show();
+                }
             }
         });
 
-        // Cancel Button Action
         btnCancel.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
+
     private void showRenameDialog(Playlist playlist) {
         View dialogView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.dialog_create_playlist, null);
+
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
         TextInputEditText editText = dialogView.findViewById(R.id.editPlaylistName);
+        Button btnRename = dialogView.findViewById(R.id.btnCreate);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        tvTitle.setText("Rename Playlist");
+        btnRename.setText("Rename");
         editText.setText(playlist.getName());
         editText.selectAll();
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Rename Playlist")
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setView(dialogView)
-                .setPositiveButton("Rename", (dialog, which) -> {
-                    String newName = editText.getText().toString().trim();
-                    if (!newName.isEmpty()) {
-                        viewModel.renamePlaylist(playlist.getId(), newName);
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        btnRename.setOnClickListener(v -> {
+            if (editText.getText() != null) {
+                String newName = editText.getText().toString().trim();
+                if (!newName.isEmpty()) {
+                    viewModel.renamePlaylist(playlist.getId(), newName);
+                    Toasty.success(requireContext(), "Playlist renamed", Toasty.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                } else {
+                    Toasty.warning(requireContext(), "Enter a valid name...", Toasty.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     private void showDeleteConfirmation(Playlist playlist) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Delete Playlist")
-                .setMessage("Are you sure you want to delete \"" + playlist.getName() + "\"?")
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    viewModel.deletePlaylist(playlist);
-                    Toast.makeText(requireContext(), "Playlist deleted", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        View dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_create_playlist, null);
+
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        TextInputLayout layout = dialogView.findViewById(R.id.layoutPlaylistName);
+        Button btnDelete = dialogView.findViewById(R.id.btnCreate);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        tvTitle.setText("Delete Playlist");
+        layout.setVisibility(View.GONE); // Hide input for delete dialog
+
+        // Add a message text view
+        TextView messageView = new TextView(requireContext());
+        messageView.setText("Are you sure you want to delete \"" + playlist.getName() + "\"?");
+        messageView.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorSecondary));
+        messageView.setTextSize(16);
+        messageView.setPadding(0, 24, 0, 24);
+
+        ViewGroup parent = (ViewGroup) layout.getParent();
+        int index = parent.indexOfChild(layout);
+        parent.addView(messageView, index);
+
+        btnDelete.setText("Delete");
+        btnDelete.setTextColor(Color.RED);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        btnDelete.setOnClickListener(v -> {
+            viewModel.deletePlaylist(playlist);
+            Toasty.success(requireContext(), "Playlist deleted", Toasty.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 }

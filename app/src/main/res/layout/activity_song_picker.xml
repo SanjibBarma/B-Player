@@ -6,52 +6,65 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
-    android:background="?attr/colorSurface">
+    android:background="@drawable/ic_main_bg">
 
     <!-- Toolbar -->
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical"
-        android:background="?attr/colorSurface"
-        android:elevation="4dp">
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="6dp"
+        app:strokeWidth="0dp">
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_arrow_back"
-            app:tint="?attr/colorOnSurface"/>
-
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Add Songs"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginStart="16dp"/>
+            android:background="@drawable/song_card_bg"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            android:gravity="center_vertical">
 
-        <TextView
-            android:id="@+id/selectedCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 selected"
-            android:textSize="14sp"
-            android:textColor="?attr/colorOnSurfaceVariant"/>
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/colorSecondary"/>
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Add Songs"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorSecondary"
+                android:layout_marginStart="16dp"/>
+
+            <TextView
+                android:id="@+id/selectedCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 selected"
+                android:textSize="14sp"
+                android:textColor="@color/colorSecondary"
+                android:layout_marginEnd="16dp"
+                android:alpha="0.8"/>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Song List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewSongPicker"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        android:paddingHorizontal="12dp"
+        android:clipToPadding="false"/>
 
     <!-- Add Button -->
     <com.google.android.material.button.MaterialButton
@@ -60,6 +73,11 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="Add to Playlist"
+        android:textColor="@color/colorSecondary"
+        app:backgroundTint="@color/colorPrimary"
+        app:cornerRadius="12dp"
+        app:strokeColor="@color/colorSecondary"
+        app:strokeWidth="1dp"
         android:enabled="false"/>
 
 </LinearLayout>

@@ -1,7 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <corners android:radius="8dp"/>
-    <stroke android:width="1dp" android:color="?attr/colorOutline"/>
-    <padding android:left="12dp" android:right="12dp"/>
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Gradient Border -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <gradient
+                android:startColor="#FFFFFF"
+                android:centerColor="#FFFF00"
+                android:endColor="#d0964b"
+                android:angle="0"/>
+        </shape>
+    </item>
+
+    <!-- Inner Background (creates border effect) -->
+    <item android:left="1dp"
+        android:top="1dp"
+        android:right="1dp"
+        android:bottom="1dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="@android:color/white"/>
+            <padding
+                android:left="12dp"
+                android:right="12dp"/>
+        </shape>
+    </item>
+
+</layer-list>

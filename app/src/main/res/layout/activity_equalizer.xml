@@ -5,130 +5,159 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="?attr/colorSurface">
+    android:background="@drawable/ic_main_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="vertical">
 
         <!-- Toolbar -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/song_card_bg"
+                android:orientation="horizontal"
+                android:padding="4dp"
+                android:gravity="center_vertical">
+
+                <ImageButton
+                    android:id="@+id/btnBackEqualizer"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_arrow_back"/>
+
+                <b.my.audioplayer.utils.GradientTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Equalizer"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorSecondary"
+                    android:layout_marginStart="16dp"/>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchEqualizer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    app:thumbTint="@android:color/darker_gray"
+                    app:trackTint="@color/colorSecondary"/>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingBottom="24dp">
 
-            <ImageButton
-                android:id="@+id/btnBackEqualizer"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_arrow_back"
-                app:tint="?attr/colorOnSurface"/>
-
-            <TextView
-                android:layout_width="0dp"
+            <!-- Presets -->
+            <b.my.audioplayer.utils.GradientTextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Equalizer"
-                android:textSize="20sp"
+                android:text="Presets"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface"
-                android:layout_marginStart="16dp"/>
+                android:textColor="@color/colorSecondary"
+                android:alpha="0.8"/>
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchEqualizer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+            <Spinner
+                android:id="@+id/spinnerPresets"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/spinner_background"/>
+
+            <!-- Equalizer Bands -->
+            <b.my.audioplayer.utils.GradientTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Equalizer Bands"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorSecondary"
+                android:layout_marginTop="24dp"
+                android:alpha="0.8"/>
+
+            <LinearLayout
+                android:id="@+id/equalizerBandsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:gravity="center"/>
+
+            <!-- Bass Boost -->
+            <b.my.audioplayer.utils.GradientTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bass Boost"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorSecondary"
+                android:layout_marginTop="24dp"
+                android:alpha="0.8"/>
+
+            <SeekBar
+                android:id="@+id/seekBarBassBoost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:max="1000"
+                android:progress="0"
+                android:progressTint="@color/colorSecondary"
+                android:thumbTint="@color/colorSecondary"/>
+
+            <!-- Virtualizer -->
+            <b.my.audioplayer.utils.GradientTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Virtualizer"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorSecondary"
+                android:layout_marginTop="24dp"
+                android:alpha="0.8"/>
+
+            <SeekBar
+                android:id="@+id/seekBarVirtualizer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:max="1000"
+                android:progress="0"
+                android:progressTint="@color/colorSecondary"
+                android:thumbTint="@color/colorSecondary"/>
+
+            <!-- Reset Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnResetEqualizer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:text="Reset to Default"
+                android:textColor="@color/colorSecondary"
+                app:strokeColor="@color/colorSecondary"
+                app:strokeWidth="1dp"
+                app:cornerRadius="12dp"
+                app:backgroundTint="@android:color/transparent"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
         </LinearLayout>
-
-        <!-- Presets -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Presets"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginTop="24dp"/>
-
-        <Spinner
-            android:id="@+id/spinnerPresets"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_background"/>
-
-        <!-- Equalizer Bands -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Equalizer Bands"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginTop="24dp"/>
-
-        <LinearLayout
-            android:id="@+id/equalizerBandsContainer"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal"
-            android:gravity="center"/>
-
-        <!-- Bass Boost -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Bass Boost"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginTop="24dp"/>
-
-        <SeekBar
-            android:id="@+id/seekBarBassBoost"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:max="1000"
-            android:progress="0"
-            android:progressTint="?attr/colorPrimary"
-            android:thumbTint="?attr/colorPrimary"/>
-
-        <!-- Virtualizer -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Virtualizer"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginTop="24dp"/>
-
-        <SeekBar
-            android:id="@+id/seekBarVirtualizer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:max="1000"
-            android:progress="0"
-            android:progressTint="?attr/colorPrimary"
-            android:thumbTint="?attr/colorPrimary"/>
-
-        <!-- Reset Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnResetEqualizer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="Reset to Default"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
-
     </LinearLayout>
 
 </ScrollView>

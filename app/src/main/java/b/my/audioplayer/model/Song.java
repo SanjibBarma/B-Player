@@ -2,9 +2,10 @@ package b.my.audioplayer.model;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import java.io.Serializable;
 
 @Entity(tableName = "songs")
-public class Song {
+public class Song implements Serializable {
     @PrimaryKey(autoGenerate = true)
     private long id;
     private String title;

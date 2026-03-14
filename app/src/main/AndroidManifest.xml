@@ -22,7 +22,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Media button / lock screen (needed on some OEMs) -->
-    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL"
+    <uses-permission
+        android:name="android.permission.MEDIA_CONTENT_CONTROL"
         tools:ignore="ProtectedPermission" />
 
     <!-- Bluetooth -->
@@ -77,35 +78,32 @@
             android:exported="false"
             android:theme="@style/Theme.BPlayer" />
 
-        <activity android:name=".activity.PlaylistActivity"       android:exported="false" />
-        <activity android:name=".activity.PlaylistDetailActivity" android:exported="false" />
-        <activity android:name=".activity.EqualizerActivity"      android:exported="false" />
-        <activity android:name=".activity.SearchActivity"         android:exported="false"
-            android:windowSoftInputMode="stateVisible" />
-        <activity android:name=".activity.SettingsActivity"       android:exported="false" />
-        <activity android:name=".activity.TagEditorActivity"      android:exported="false" />
-        <activity android:name=".activity.AlbumDetailActivity"    android:exported="false" />
-        <activity android:name=".activity.ArtistDetailActivity"   android:exported="false" />
-        <activity android:name=".activity.SongPickerActivity"     android:exported="false" />
-        <activity android:name=".activity.LyricsActivity"         android:exported="false" />
+        <activity
+            android:name=".activity.PlaylistDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.EqualizerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.AlbumDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.SongPickerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.LyricsActivity"
+            android:exported="false" />
 
         <!-- ==================== Foreground Service ==================== -->
 
-        <!--
-            foregroundServiceType="mediaPlayback" is required on Android 10+ (API 29+)
-            for a foreground service that plays audio.
-            On Android 14+ (API 34) this must be declared or the service will crash.
-        -->
         <service
             android:name=".service.MusicPlaybackService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback">
 
-            <!--
-                FLAG_HANDLES_MEDIA_BUTTONS in MediaSession means the system routes
-                hardware-button intents here.  The intent-filter below is still
-                needed on some OEM ROMs (Samsung, MIUI, etc.).
-            -->
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
@@ -150,25 +148,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-
-        <!--
-            NotificationReceiver is no longer used for notification button actions —
-            those now go directly to MusicPlaybackService via PendingIntent.getService().
-            Keeping the receiver here in case other parts of the app still send broadcasts.
-            exported="false" is correct — only our own app sends these.
-        -->
-        <receiver
-            android:name=".receiver.NotificationReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="b.my.audioplayer.ACTION_PLAY" />
-                <action android:name="b.my.audioplayer.ACTION_PAUSE" />
-                <action android:name="b.my.audioplayer.ACTION_NEXT" />
-                <action android:name="b.my.audioplayer.ACTION_PREVIOUS" />
-                <action android:name="b.my.audioplayer.ACTION_STOP" />
-                <action android:name="b.my.audioplayer.ACTION_TOGGLE_PLAYBACK" />
             </intent-filter>
         </receiver>
 

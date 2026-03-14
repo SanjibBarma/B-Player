@@ -5,7 +5,6 @@
     <!-- Navigation -->
     <string name="nav_songs">Songs</string>
     <string name="nav_albums">Albums</string>
-    <string name="nav_artists">Artists</string>
     <string name="nav_playlists">Playlists</string>
     <string name="nav_favorites">Favorites</string>
 
@@ -17,7 +16,6 @@
     <string name="previous">Previous</string>
     <string name="shuffle">Shuffle</string>
     <string name="repeat">Repeat</string>
-    <string name="repeat_all">Repeat All</string>
     <string name="repeat_one">Repeat One</string>
 
     <!-- Playlist -->
@@ -40,6 +38,4 @@
     <string name="added_to_favorites">Added to favorites</string>
     <string name="removed_from_favorites">Removed from favorites</string>
     <string name="added_to_playlist">Added to playlist</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

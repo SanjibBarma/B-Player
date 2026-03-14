@@ -58,21 +58,4 @@ public class Constants {
             ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma", ".alac"
     };
 
-
-    public static void textGradient(TextView textView) {
-        Paint paint = textView.getPaint();
-        float width = paint.measureText(textView.getText().toString());
-
-        Shader shader = new LinearGradient(
-                0, 0, width, textView.getTextSize(),
-                new int[]{
-                        Color.WHITE,
-                        Color.YELLOW,
-                        Color.parseColor("#D0964B")
-                },
-                null,
-                Shader.TileMode.CLAMP
-        );
-        textView.getPaint().setShader(shader);
-    }
 }

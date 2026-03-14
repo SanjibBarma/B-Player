@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:padding="8dp"/>
+        android:paddingBottom="80dp"/>
 
     <TextView
         android:id="@+id/emptyText"
@@ -19,7 +19,8 @@
         android:layout_gravity="center"
         android:text="No albums found"
         android:textSize="16sp"
-        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textColor="@color/colorSecondary"
+        android:alpha="0.7"
         android:visibility="gone"/>
 
 </FrameLayout>

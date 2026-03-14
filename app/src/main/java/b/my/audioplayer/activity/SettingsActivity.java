@@ -21,7 +21,7 @@ public class SettingsActivity extends AppCompatActivity {
     private MainViewModel viewModel;
 
     private ImageButton btnBack;
-    private SwitchMaterial switchDarkMode;
+//    private SwitchMaterial switchDarkMode;
     private SwitchMaterial switchCrossfade;
     private LinearLayout layoutCrossfadeDuration;
     private SeekBar seekBarCrossfade;
@@ -45,7 +45,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void initViews() {
         btnBack = findViewById(R.id.btnBackSettings);
-        switchDarkMode = findViewById(R.id.switchDarkMode);
+//        switchDarkMode = findViewById(R.id.switchDarkMode);
         switchCrossfade = findViewById(R.id.switchCrossfade);
         layoutCrossfadeDuration = findViewById(R.id.layoutCrossfadeDuration);
         seekBarCrossfade = findViewById(R.id.seekBarCrossfade);
@@ -64,7 +64,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void loadSettings() {
         boolean isDarkMode = preferences.getBoolean("dark_mode", false);
-        switchDarkMode.setChecked(isDarkMode);
+//        switchDarkMode.setChecked(isDarkMode);
 
         boolean isCrossfade = preferences.getBoolean("crossfade_enabled", false);
         switchCrossfade.setChecked(isCrossfade);
@@ -81,11 +81,11 @@ public class SettingsActivity extends AppCompatActivity {
     private void setupListeners() {
         btnBack.setOnClickListener(v -> onBackPressed());
 
-        switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            preferences.edit().putBoolean("dark_mode", isChecked).apply();
-            AppCompatDelegate.setDefaultNightMode(
-                    isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
-        });
+//        switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            preferences.edit().putBoolean("dark_mode", isChecked).apply();
+//            AppCompatDelegate.setDefaultNightMode(
+//                    isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
+//        });
 
         switchCrossfade.setOnCheckedChangeListener((buttonView, isChecked) -> {
             preferences.edit().putBoolean("crossfade_enabled", isChecked).apply();

@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:padding="24dp">
 
-    <TextView
+    <b.my.audioplayer.utils.GradientTextView
         android:id="@+id/tvDialogTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -21,43 +21,54 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
         android:id="@+id/layoutPlaylistName"
+        app:hintTextColor="@color/colorSecondary"
+        app:boxStrokeColor="@color/colorSecondary"
+        app:boxStrokeWidth="1dp"
+        android:background="@color/colorSurface"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
         app:hintEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editPlaylistName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Playlist name"
+            android:textColor="@color/colorSecondary"
+            android:textColorHint="@color/colorSecondary"
             android:imeOptions="actionDone"
             android:inputType="text"
-            android:background="@android:color/white"
+            android:background="@android:color/transparent"
             android:maxLines="1" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
         android:gravity="end"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnCancel"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackgroundBorderless"
             android:text="Cancel"
-            android:textColor="@android:color/holo_red_dark" />
+            android:textColor="@color/colorSecondary"
+            android:alpha="0.7" />
 
         <Button
             android:id="@+id/btnCreate"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
             android:text="Create"
-            android:textColor="@android:color/holo_green_dark" />
+            android:textStyle="bold"
+            android:textColor="@color/colorSecondary" />
     </LinearLayout>
 
 </LinearLayout>
