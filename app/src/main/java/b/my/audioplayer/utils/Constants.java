@@ -52,6 +52,8 @@ public class Constants {
     public static final int SORT_BY_ALBUM = 2;
     public static final int SORT_BY_DATE = 3;
     public static final int SORT_BY_DURATION = 4;
+    // Intent extras
+    public static final String EXTRA_SLIDE_UP = "extra_slide_up";
 
     // Audio Formats
     public static final String[] SUPPORTED_FORMATS = {

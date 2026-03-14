@@ -162,8 +162,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupMiniPlayer() {
-        miniPlayerContainer.setOnClickListener(v ->
-                startActivity(new Intent(this, NowPlayingActivity.class)));
+        miniPlayerContainer.setOnClickListener(v -> {
+            Intent intent = new Intent(this, NowPlayingActivity.class);
+            intent.putExtra(Constants.EXTRA_SLIDE_UP, true);  // Slide up animation
+            startActivity(intent);
+        });
 
         miniPlayerBtnPlayPause.setOnClickListener(v -> {
             if (isBound) {

@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -59,7 +60,7 @@ public class NowPlayingActivity extends AppCompatActivity {
     private ImageButton btnBack;
     private ImageButton btnLyrics;
     private WaveView waveView;
-
+    private boolean openedWithSlide = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable updateSeekBarRunnable;
     private boolean isUserSeeking = false;
@@ -86,6 +87,15 @@ public class NowPlayingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check if should use slide animation
+        openedWithSlide = getIntent().getBooleanExtra(Constants.EXTRA_SLIDE_UP, false);
+
+        if (openedWithSlide) {
+            // Apply slide up enter animation only when opened from mini player
+            overridePendingTransition(R.anim.slide_up_enter, R.anim.no_animation);
+        }
+
         setContentView(R.layout.activity_now_playing);
 
         viewModel = new ViewModelProvider(this).get(NowPlayingViewModel.class);
@@ -95,6 +105,7 @@ public class NowPlayingActivity extends AppCompatActivity {
         setupClickListeners();
         observeViewModel();
         bindService();
+        setupBackPressHandler();
     }
 
     private void initViews() {
@@ -115,12 +126,13 @@ public class NowPlayingActivity extends AppCompatActivity {
         tvPlayingTitle = findViewById(R.id.tvPlayingTitle);
         waveView = findViewById(R.id.waveView);
 
-
         songTitle.setSelected(true);
+        artistName.setSelected(true);
     }
 
     private void setupClickListeners() {
-        btnBack.setOnClickListener(v -> onBackPressed());
+        // FIX: Use custom finish with animation
+        btnBack.setOnClickListener(v -> finishWithAnimation());
 
         btnPlayPause.setOnClickListener(v -> {
             if (isBound && musicService != null) {
@@ -208,6 +220,24 @@ public class NowPlayingActivity extends AppCompatActivity {
                     musicService.seekTo((long) seekBar.getProgress());
                 }
                 isUserSeeking = false;
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // Custom finish with slide down animation
+    // -------------------------------------------------------------------------
+
+    private void finishWithAnimation() {
+        finish();
+        overridePendingTransition(R.anim.no_animation, R.anim.slide_down_exit);
+    }
+
+    private void setupBackPressHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                finishWithAnimation();
             }
         });
     }
@@ -355,6 +385,10 @@ public class NowPlayingActivity extends AppCompatActivity {
     private void updateSongInfo(Song song) {
         songTitle.setText(song.getTitle());
         artistName.setText(song.getArtist());
+
+        // Re-enable marquee
+        songTitle.setSelected(true);
+        artistName.setSelected(true);
 
         if (song.getAlbumArt() != null && !song.getAlbumArt().isEmpty()) {
             Glide.with(this)
