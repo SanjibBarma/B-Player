@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -11,9 +12,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.Player;
@@ -27,8 +30,11 @@ import b.my.audioplayer.model.Song;
 import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.viewmodel.MainViewModel;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import es.dmoral.toasty.Toasty;
 
 public class SongsFragment extends Fragment {
 
@@ -264,10 +270,36 @@ public class SongsFragment extends Fragment {
     }
 
     private void shareSong(Song song) {
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("audio/*");
-        shareIntent.putExtra(Intent.EXTRA_STREAM,
-                android.net.Uri.parse("file://" + song.getPath()));
-        startActivity(Intent.createChooser(shareIntent, "Share song"));
+        if (song == null || song.getPath() == null) {
+            Toasty.error(requireContext(), "Cannot share this song", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            File file = new File(song.getPath());
+
+            if (!file.exists()) {
+                Toasty.error(requireContext(), "File not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Uri contentUri = FileProvider.getUriForFile(
+                    requireContext(),
+                    "b.my.audioplayer.fileprovider",
+                    file
+            );
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("audio/*");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            startActivity(Intent.createChooser(shareIntent, "Share \"" + song.getTitle() + "\""));
+
+        } catch (IllegalArgumentException e) {
+            Toasty.error(requireContext(), "Cannot share this file", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toasty.error(requireContext(), "Error sharing: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 }

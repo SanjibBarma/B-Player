@@ -41,6 +41,7 @@ import b.my.audioplayer.utils.Constants;
 import es.dmoral.toasty.Toasty;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class NowPlayingActivity extends AppCompatActivity {
@@ -96,11 +97,9 @@ public class NowPlayingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Check if should use slide animation
         openedWithSlide = getIntent().getBooleanExtra(Constants.EXTRA_SLIDE_UP, false);
 
         if (openedWithSlide) {
-            // Apply slide up enter animation only when opened from mini player
             overridePendingTransition(R.anim.slide_up_enter, R.anim.no_animation);
         }
 
@@ -139,7 +138,6 @@ public class NowPlayingActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        // FIX: Use custom finish with animation
         btnBack.setOnClickListener(v -> finishWithAnimation());
 
         btnPlayPause.setOnClickListener(v -> {
@@ -187,10 +185,19 @@ public class NowPlayingActivity extends AppCompatActivity {
         btnFavorite.setOnClickListener(v -> {
             Song currentSong = viewModel.getCurrentSong().getValue();
             if (currentSong != null) {
+                // ✅ Get current status BEFORE toggling
+                boolean currentStatus = currentSong.isFavorite();
+                boolean newFavoriteStatus = !currentStatus;
+
+                // ✅ Update UI immediately
+                updateFavoriteIcon(newFavoriteStatus);
+
+                // ✅ Save to database (toggleFavorite will flip the status internally)
                 mainViewModel.toggleFavorite(currentSong);
-                updateFavoriteIcon(currentSong.isFavorite());
+
+                // ✅ Show toast based on NEW status
                 Toasty.success(this,
-                        currentSong.isFavorite() ? "Added to Favorites" : "Removed from Favorites",
+                        newFavoriteStatus ? "Added to Favorites" : "Removed from Favorites",
                         Toasty.LENGTH_SHORT, true).show();
             }
         });
@@ -232,10 +239,6 @@ public class NowPlayingActivity extends AppCompatActivity {
         });
     }
 
-    // -------------------------------------------------------------------------
-    // Custom finish with slide down animation
-    // -------------------------------------------------------------------------
-
     private void finishWithAnimation() {
         finish();
         overridePendingTransition(R.anim.no_animation, R.anim.slide_down_exit);
@@ -252,7 +255,11 @@ public class NowPlayingActivity extends AppCompatActivity {
 
     private void observeViewModel() {
         viewModel.getCurrentSong().observe(this, song -> {
-            if (song != null) updateSongInfo(song);
+            if (song != null) {
+                updateSongInfo(song);
+                // Check favorite status from database when song changes
+                checkAndUpdateFavoriteStatus(song);
+            }
         });
 
         viewModel.getIsPlaying().observe(this, isPlaying -> {
@@ -276,6 +283,63 @@ public class NowPlayingActivity extends AppCompatActivity {
                 totalTime.setText(formatTime(duration));
             }
         });
+
+        // ✅ KEY FIX: Observe favorite songs list to detect changes from anywhere
+        mainViewModel.getFavoriteSongs().observe(this, favoriteSongs -> {
+            Song currentSong = viewModel.getCurrentSong().getValue();
+            if (currentSong != null && favoriteSongs != null) {
+                boolean isFavorite = isSongInFavorites(currentSong, favoriteSongs);
+
+                // Update the song object's favorite status
+                if (currentSong.isFavorite() != isFavorite) {
+                    currentSong.setFavorite(isFavorite);
+                    updateFavoriteIcon(isFavorite);
+
+                    // Show toast only if activity is visible and user initiated from fragment
+                    Log.d(TAG, "Favorite status updated from observer: " + isFavorite);
+                }
+            }
+        });
+
+        // ✅ Also observe all songs for changes
+        mainViewModel.getAllSongs().observe(this, songs -> {
+            Song currentSong = viewModel.getCurrentSong().getValue();
+            if (currentSong != null && songs != null) {
+                for (Song song : songs) {
+                    if (song.getId() == currentSong.getId()) {
+                        if (currentSong.isFavorite() != song.isFavorite()) {
+                            currentSong.setFavorite(song.isFavorite());
+                            updateFavoriteIcon(song.isFavorite());
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    // ✅ Helper method to check if song is in favorites list
+    private boolean isSongInFavorites(Song song, List<Song> favoriteSongs) {
+        if (song == null || favoriteSongs == null) return false;
+
+        for (Song favSong : favoriteSongs) {
+            if (favSong.getId() == song.getId()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ✅ Check favorite status from MainViewModel
+    private void checkAndUpdateFavoriteStatus(Song song) {
+        if (song == null) return;
+
+        List<Song> favoriteSongs = mainViewModel.getFavoriteSongs().getValue();
+        if (favoriteSongs != null) {
+            boolean isFavorite = isSongInFavorites(song, favoriteSongs);
+            song.setFavorite(isFavorite);
+            updateFavoriteIcon(isFavorite);
+        }
     }
 
     private void setupPlayerListeners() {
@@ -338,6 +402,9 @@ public class NowPlayingActivity extends AppCompatActivity {
             if (duration > 0) {
                 viewModel.setDuration(duration);
             }
+
+            // ✅ Check favorite status when updating UI
+            checkAndUpdateFavoriteStatus(currentSong);
         }
 
         boolean isPlaying = musicService.isPlaying();
@@ -394,7 +461,6 @@ public class NowPlayingActivity extends AppCompatActivity {
         songTitle.setText(song.getTitle());
         artistName.setText(song.getArtist());
 
-        // Re-enable marquee
         songTitle.setSelected(true);
         artistName.setSelected(true);
 
@@ -465,11 +531,9 @@ public class NowPlayingActivity extends AppCompatActivity {
 
         dialog.show();
 
-        // Optional: Rounded corners and proper width
         if (dialog.getWindow() != null) {
-//            dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_dialog_rounded);
             dialog.getWindow().setLayout(
-                    (int)(getResources().getDisplayMetrics().widthPixels * 0.9), // 90% of screen width
+                    (int)(getResources().getDisplayMetrics().widthPixels * 0.9),
                     ViewGroup.LayoutParams.WRAP_CONTENT
             );
         }
@@ -534,6 +598,16 @@ public class NowPlayingActivity extends AppCompatActivity {
     private void bindService() {
         Intent intent = new Intent(this, MusicPlaybackService.class);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // ✅ Refresh favorite status when returning to activity
+        Song currentSong = viewModel.getCurrentSong().getValue();
+        if (currentSong != null) {
+            checkAndUpdateFavoriteStatus(currentSong);
+        }
     }
 
     @Override

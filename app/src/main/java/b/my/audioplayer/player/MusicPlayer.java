@@ -104,18 +104,20 @@ public class MusicPlayer {
             List<Song> allSongs = AppDatabase.getInstance(context).songDao().getAllSongsSync();
             if (allSongs != null && !allSongs.isEmpty()) {
                 handler.post(() -> {
-                    setPlaylist(allSongs);
+                    // Use internal method that respects saved shuffle state
+                    setPlaylistInternal(allSongs, true);
+
                     if (lastSongId != -1) {
-                        for (int i = 0; i < allSongs.size(); i++) {
-                            if (allSongs.get(i).getId() == lastSongId) {
+                        for (int i = 0; i < currentPlaylist.size(); i++) {
+                            if (currentPlaylist.get(i).getId() == lastSongId) {
                                 currentIndex = i;
                                 break;
                             }
                         }
                     }
                     exoPlayer.seekTo(currentIndex, preferenceHelper.getLastPosition());
-                    if (callback != null && currentIndex < allSongs.size()) {
-                        callback.onSongChanged(allSongs.get(currentIndex));
+                    if (callback != null && currentIndex < currentPlaylist.size()) {
+                        callback.onSongChanged(currentPlaylist.get(currentIndex));
                     }
                 });
             }
@@ -135,18 +137,17 @@ public class MusicPlayer {
         this.callback = callback;
     }
 
+    /**
+     * Set playlist - plays in order (ignores shuffle state for new playlist)
+     */
     public void setPlaylist(List<Song> songs) {
-        this.originalPlaylist = new ArrayList<>(songs);
-        this.currentPlaylist = new ArrayList<>(songs);
-        currentIndex = 0;
-
-        if (isShuffleEnabled) {
-            shufflePlaylist();
-        }
-
-        preparePlaylist(0);
+        setPlaylist(songs, 0);
     }
 
+    /**
+     * Set playlist with start index - plays in order from that index
+     * Shuffle is NOT applied to new playlist automatically
+     */
     public void setPlaylist(List<Song> songs, int startIndex) {
         this.originalPlaylist = new ArrayList<>(songs);
         this.currentPlaylist = new ArrayList<>(songs);
@@ -158,14 +159,22 @@ public class MusicPlayer {
             this.currentIndex = startIndex;
         }
 
-        if (isShuffleEnabled) {
-            Song selectedSong = currentPlaylist.get(currentIndex);
+        // DO NOT shuffle when setting new playlist
+        // User must explicitly enable shuffle
+
+        preparePlaylist(0);
+    }
+
+    /**
+     * Internal method - respects shuffle state (used for restoring state)
+     */
+    private void setPlaylistInternal(List<Song> songs, boolean applyShuffle) {
+        this.originalPlaylist = new ArrayList<>(songs);
+        this.currentPlaylist = new ArrayList<>(songs);
+        this.currentIndex = 0;
+
+        if (applyShuffle && isShuffleEnabled) {
             shufflePlaylist();
-            // Find the selected song in the shuffled list
-            this.currentIndex = currentPlaylist.indexOf(selectedSong);
-            if (currentIndex < 0) {
-                this.currentIndex = 0;
-            }
         }
 
         preparePlaylist(0);
@@ -179,7 +188,7 @@ public class MusicPlayer {
             MediaItem mediaItem = MediaItem.fromUri(song.getPath());
             mediaItems.add(mediaItem);
         }
-        
+
         exoPlayer.setMediaItems(mediaItems, currentIndex, startPositionMs);
         exoPlayer.prepare();
     }

@@ -4,29 +4,38 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.button.MaterialButton;
+
 import b.my.audioplayer.R;
 import b.my.audioplayer.adapter.SongAdapter;
 import b.my.audioplayer.model.Song;
 import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.utils.Constants;
 import b.my.audioplayer.viewmodel.MainViewModel;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import es.dmoral.toasty.Toasty;
 
 public class AlbumDetailActivity extends AppCompatActivity {
 
@@ -140,31 +149,32 @@ public class AlbumDetailActivity extends AppCompatActivity {
 
             @Override
             public void onShare(Song song) {
-                Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("audio/*");
-                shareIntent.putExtra(Intent.EXTRA_STREAM, android.net.Uri.parse("file://" + song.getPath()));
-                startActivity(Intent.createChooser(shareIntent, "Share song"));
+                shareSong(song);
             }
         });
     }
 
     private void observeData() {
         if (albumId != -1) {
+            // This now handles both normal albums and Ringtones virtual album
             viewModel.getSongsByAlbum(albumId).observe(this, songs -> {
-                albumSongs = songs;
-                adapter.setSongs(songs);
+                albumSongs = songs != null ? songs : new ArrayList<>();
+                adapter.setSongs(albumSongs);
 
-                if (songs.isEmpty()) {
+                if (albumSongs.isEmpty()) {
                     emptyStateView.setVisibility(View.VISIBLE);
                     recyclerView.setVisibility(View.GONE);
                 } else {
                     emptyStateView.setVisibility(View.GONE);
                     recyclerView.setVisibility(View.VISIBLE);
 
-                    // Set first song art as album art
-                    if (songs.get(0).getAlbumArt() != null) {
+                    // Set album art
+                    if (albumId == Constants.RINGTONE_ALBUM_ID) {
+                        // Use default ringtone icon for Ringtones album
+                        albumCoverArt.setImageResource(R.drawable.ic_ringtone);
+                    } else if (albumSongs.get(0).getAlbumArt() != null) {
                         Glide.with(this)
-                                .load(songs.get(0).getAlbumArt())
+                                .load(albumSongs.get(0).getAlbumArt())
                                 .placeholder(R.drawable.ic_music_note)
                                 .into(albumCoverArt);
                     }
@@ -188,6 +198,40 @@ public class AlbumDetailActivity extends AppCompatActivity {
             musicService.getMusicPlayer().setPlaylist(shuffledList, 0);
             musicService.play();
             startActivity(new Intent(this, NowPlayingActivity.class));
+        }
+    }
+
+    private void shareSong(Song song) {
+        if (song == null || song.getPath() == null) {
+            Toasty.error(this, "Cannot share this song", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            File file = new File(song.getPath());
+
+            if (!file.exists()) {
+                Toasty.error(this, "File not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Uri contentUri = FileProvider.getUriForFile(
+                    this,
+                    "b.my.audioplayer.fileprovider",
+                    file
+            );
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("audio/*");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            startActivity(Intent.createChooser(shareIntent, "Share \"" + song.getTitle() + "\""));
+
+        } catch (IllegalArgumentException e) {
+            Toasty.error(this, "Cannot share this file", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toasty.error(this, "Error sharing: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 

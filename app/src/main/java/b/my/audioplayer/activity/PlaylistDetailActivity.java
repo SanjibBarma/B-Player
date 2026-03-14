@@ -6,6 +6,7 @@ import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.LayoutInflater;
@@ -19,8 +20,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -45,6 +46,7 @@ import b.my.audioplayer.viewmodel.PlaylistViewModel;
 import b.my.audioplayer.utils.Constants;
 import es.dmoral.toasty.Toasty;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,7 +99,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(PlaylistViewModel.class);
         mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
-        
+
         initViews();
         setupRecyclerView();
         loadPlaylistDetails();
@@ -185,9 +187,9 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             @Override
             public void onToggleFavorite(Song song) {
                 mainViewModel.toggleFavorite(song);
-                Toasty.info(PlaylistDetailActivity.this, 
-                    song.isFavorite() ? "Added to Favorites" : "Removed from Favorites", 
-                    Toast.LENGTH_SHORT).show();
+                Toasty.info(PlaylistDetailActivity.this,
+                        song.isFavorite() ? "Added to Favorites" : "Removed from Favorites",
+                        Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -363,11 +365,37 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     }
 
     private void shareSong(Song song) {
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("audio/*");
-        shareIntent.putExtra(Intent.EXTRA_STREAM, android.net.Uri.parse("file://" + song.getPath()));
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivity(Intent.createChooser(shareIntent, "Share song"));
+        if (song == null || song.getPath() == null) {
+            Toasty.error(this, "Cannot share this song", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            File file = new File(song.getPath());
+
+            if (!file.exists()) {
+                Toasty.error(this, "File not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Uri contentUri = FileProvider.getUriForFile(
+                    this,
+                    "b.my.audioplayer.fileprovider",
+                    file
+            );
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("audio/*");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            startActivity(Intent.createChooser(shareIntent, "Share \"" + song.getTitle() + "\""));
+
+        } catch (IllegalArgumentException e) {
+            Toasty.error(this, "Cannot share this file", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toasty.error(this, "Error sharing: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

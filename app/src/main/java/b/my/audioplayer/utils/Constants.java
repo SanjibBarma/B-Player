@@ -54,7 +54,9 @@ public class Constants {
     public static final int SORT_BY_DURATION = 4;
     // Intent extras
     public static final String EXTRA_SLIDE_UP = "extra_slide_up";
-
+    // Ringtone filter
+    public static final long ONE_MINUTE_MS = 60 * 1000; // 60 seconds
+    public static final long RINGTONE_ALBUM_ID = -999; // Virtual album ID for ringtones
     // Audio Formats
     public static final String[] SUPPORTED_FORMATS = {
             ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma", ".alac"
