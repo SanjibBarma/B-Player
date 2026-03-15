@@ -62,4 +62,7 @@ public class Constants {
             ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma", ".alac"
     };
 
+    // Playback Speed
+    public static final String PREF_PLAYBACK_SPEED = "playback_speed";
+    public static final float DEFAULT_PLAYBACK_SPEED = 1.0f;
 }

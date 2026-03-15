@@ -8,7 +8,7 @@
 
     <b.my.audioplayer.utils.GradientTextView
         android:id="@+id/tvDialogTitle"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Confirmation"
         android:textColor="@color/colorSecondary"
@@ -16,7 +16,7 @@
         android:textStyle="bold"
         android:layout_marginBottom="12dp"/>
 
-    <TextView
+    <b.my.audioplayer.utils.GradientTextView
         android:id="@+id/tvDialogMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

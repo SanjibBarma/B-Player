@@ -4,6 +4,8 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -13,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -24,6 +27,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.Player;
@@ -137,6 +141,8 @@ public class NowPlayingActivity extends AppCompatActivity {
         btnLyrics = findViewById(R.id.btnLyrics);
         tvPlayingTitle = findViewById(R.id.tvPlayingTitle);
         waveView = findViewById(R.id.waveView);
+
+        findViewById(R.id.btnSpeed).setOnClickListener(v -> showPlaybackSpeedDialog());
 
         songTitle.setSelected(true);
         artistName.setSelected(true);
@@ -264,15 +270,15 @@ public class NowPlayingActivity extends AppCompatActivity {
         viewModel.getIsPlaying().observe(this, isPlaying -> {
             Log.d(TAG, "ViewModel isPlaying changed: " + isPlaying);
             btnPlayPause.setImageResource(isPlaying ? R.drawable.ic_pause : R.drawable.ic_play);
-            btnPlayPause.setColorFilter(ContextCompat.getColor(this, R.color.colorSurface));
-            btnPlayPause.setBackgroundTintList(
-                    ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorSecondary)));
+//            btnPlayPause.setColorFilter(ContextCompat.getColor(this, R.color.colorSurface));
+//            btnPlayPause.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorSecondary)));
         });
 
         viewModel.getIsShuffleEnabled().observe(this, isEnabled ->
-                btnShuffle.setColorFilter(isEnabled
-                        ? getColor(R.color.colorSurface)
-                        : getColor(R.color.colorSecondary)));
+                btnShuffle.setImageResource(
+                        isEnabled ? R.drawable.ic_shuffle : R.drawable.ic_shuffle_of
+                )
+        );
 
         viewModel.getRepeatMode().observe(this, mode -> updateRepeatModeUI());
 
@@ -434,26 +440,25 @@ public class NowPlayingActivity extends AppCompatActivity {
         int mode = musicService.getMusicPlayer().getRepeatMode();
         switch (mode) {
             case Player.REPEAT_MODE_OFF:
-                btnRepeat.setImageResource(R.drawable.ic_repeat);
-                btnRepeat.setColorFilter(getColor(R.color.colorSurface));
+                btnRepeat.setImageResource(R.drawable.ic_repeat_off);
                 break;
             case Player.REPEAT_MODE_ALL:
                 btnRepeat.setImageResource(R.drawable.ic_repeat);
-                btnRepeat.setColorFilter(getColor(R.color.colorSecondary));
                 break;
             case Player.REPEAT_MODE_ONE:
                 btnRepeat.setImageResource(R.drawable.ic_repeat_one);
-                btnRepeat.setColorFilter(getColor(R.color.colorSecondary));
                 break;
         }
     }
 
     private void updateShuffleUI() {
         if (!isBound || musicService == null) return;
+
         boolean isShuffleEnabled = musicService.getMusicPlayer().isShuffleEnabled();
-        btnShuffle.setColorFilter(isShuffleEnabled
-                ? getColor(R.color.colorSurface)
-                : getColor(R.color.colorSecondary));
+
+        btnShuffle.setImageResource(
+                isShuffleEnabled ? R.drawable.ic_shuffle : R.drawable.ic_shuffle_of
+        );
     }
 
     private void updateSongInfo(Song song) {
@@ -910,5 +915,103 @@ public class NowPlayingActivity extends AppCompatActivity {
         bottomSheetDialog.setCanceledOnTouchOutside(true);
 
         bottomSheetDialog.show();
+    }
+
+    private void showPlaybackSpeedDialog() {
+        if (!isBound || musicService == null) {
+            Toasty.warning(this, "Player not ready", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_playback_speed, null);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        // Views
+        TextView tvCurrentSpeed = dialogView.findViewById(R.id.tvCurrentSpeed);
+        SeekBar seekBarSpeed = dialogView.findViewById(R.id.seekBarSpeed);
+        ConstraintLayout btnSpeed05 = dialogView.findViewById(R.id.btnSpeed05);
+        ConstraintLayout btnSpeed075 = dialogView.findViewById(R.id.btnSpeed075);
+        ConstraintLayout btnSpeed10 = dialogView.findViewById(R.id.btnSpeed10);
+        ConstraintLayout btnSpeed125 = dialogView.findViewById(R.id.btnSpeed125);
+        ConstraintLayout btnSpeed15 = dialogView.findViewById(R.id.btnSpeed15);
+        ConstraintLayout btnSpeed20 = dialogView.findViewById(R.id.btnSpeed20);
+        ConstraintLayout btnResetSpeed = dialogView.findViewById(R.id.btnResetSpeed);
+        ConstraintLayout btnApplySpeed = dialogView.findViewById(R.id.btnApplySpeed);
+        ImageButton btnClose = dialogView.findViewById(R.id.btnClose);
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+
+        // Get current speed
+        float currentSpeed = musicService.getMusicPlayer().getPlaybackSpeed();
+
+        // SeekBar: 0.5x to 2.0x (progress 0-30 → 0.5-2.0)
+        // Formula: speed = 0.5 + (progress * 0.05)
+        int currentProgress = (int) ((currentSpeed - 0.5f) / 0.05f);
+        seekBarSpeed.setProgress(currentProgress);
+        tvCurrentSpeed.setText(String.format("%.2fx", currentSpeed));
+
+        // SeekBar listener
+        seekBarSpeed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float speed = 0.5f + (progress * 0.05f);
+                tvCurrentSpeed.setText(String.format("%.2fx", speed));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // Quick select buttons
+        View.OnClickListener speedClickListener = v -> {
+            float speed = 1.0f;
+            if (v.getId() == R.id.btnSpeed05) speed = 0.5f;
+            else if (v.getId() == R.id.btnSpeed075) speed = 0.75f;
+            else if (v.getId() == R.id.btnSpeed10) speed = 1.0f;
+            else if (v.getId() == R.id.btnSpeed125) speed = 1.25f;
+            else if (v.getId() == R.id.btnSpeed15) speed = 1.5f;
+            else if (v.getId() == R.id.btnSpeed20) speed = 2.0f;
+
+            int progress = (int) ((speed - 0.5f) / 0.05f);
+            seekBarSpeed.setProgress(progress);
+            tvCurrentSpeed.setText(String.format("%.2fx", speed));
+        };
+
+        btnSpeed05.setOnClickListener(speedClickListener);
+        btnSpeed075.setOnClickListener(speedClickListener);
+        btnSpeed10.setOnClickListener(speedClickListener);
+        btnSpeed125.setOnClickListener(speedClickListener);
+        btnSpeed15.setOnClickListener(speedClickListener);
+        btnSpeed20.setOnClickListener(speedClickListener);
+
+        // Reset button
+        btnResetSpeed.setOnClickListener(v -> {
+            seekBarSpeed.setProgress(10); // 1.0x
+            tvCurrentSpeed.setText("1.00x");
+        });
+
+        // Apply button
+        btnApplySpeed.setOnClickListener(v -> {
+            float speed = 0.5f + (seekBarSpeed.getProgress() * 0.05f);
+            musicService.getMusicPlayer().setPlaybackSpeed(speed);
+            Toasty.success(this, "Speed set to " + String.format("%.2fx", speed), Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        dialog.show();
+
+        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        params.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.9);
+        dialog.getWindow().setAttributes(params);
     }
 }

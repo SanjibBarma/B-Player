@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.lifecycle.ViewModelProvider;
@@ -45,7 +46,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
     private ImageView albumCoverArt;
     private CollapsingToolbarLayout collapsingToolbar;
     private Toolbar toolbar;
-    private MaterialButton btnPlayAll, btnShuffleAll;
+    private ConstraintLayout btnPlayAll, btnShuffleAll;
     private View emptyStateView;
 
     private long albumId;

@@ -4,7 +4,7 @@
     <!-- Gradient Border -->
     <item>
         <shape android:shape="rectangle">
-            <corners android:radius="16dp"/>
+            <corners android:radius="12dp"/>
             <gradient
                 android:startColor="#FFFFFF"
                 android:centerColor="#FFFF00"
@@ -19,7 +19,7 @@
         android:right="1dp"
         android:bottom="1dp">
         <shape android:shape="rectangle">
-            <corners android:radius="16dp"/>
+            <corners android:radius="12dp"/>
             <solid android:color="@android:color/white"/>
             <padding
                 android:left="12dp"

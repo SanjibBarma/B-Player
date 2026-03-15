@@ -1,0 +1,44 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Shuffle icon -->
+    <path
+        android:pathData="M10.59,9.17L5.41,4 4,5.41l5.17,5.17 1.42,-1.41zM14.5,4l2.04,2.04L4,18.59 5.41,20 17.96,7.46 20,9.5V4h-5.5zM14.83,13.41l-1.41,1.41 3.13,3.13L14.5,20H20v-5.5l-2.04,2.04-3.13,-3.13z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="24"
+                android:endY="0"
+                android:startColor="#FFFFFF"
+                android:centerColor="#FFFF00"
+                android:endColor="#D0964B"/>
+        </aapt:attr>
+    </path>
+
+    <!-- Slash line (Shuffle Off) -->
+    <path
+        android:pathData="M3,3L21,21"
+        android:strokeWidth="2"
+        android:strokeLineCap="round">
+
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="24"
+                android:endY="0"
+                android:startColor="#FFFFFF"
+                android:centerColor="#FFFF00"
+                android:endColor="#D0964B"/>
+        </aapt:attr>
+
+    </path>
+
+</vector>

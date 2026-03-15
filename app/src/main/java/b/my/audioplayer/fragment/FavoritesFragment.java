@@ -4,16 +4,20 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -22,10 +26,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import b.my.audioplayer.R;
 import b.my.audioplayer.activity.NowPlayingActivity;
+import b.my.audioplayer.adapter.PlaylistAdapter;
 import b.my.audioplayer.adapter.SongAdapter;
+import b.my.audioplayer.model.Playlist;
 import b.my.audioplayer.model.Song;
 import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.viewmodel.MainViewModel;
+import b.my.audioplayer.viewmodel.PlaylistViewModel;
 import es.dmoral.toasty.Toasty;
 
 import java.io.File;
@@ -35,6 +42,7 @@ import java.util.List;
 public class FavoritesFragment extends Fragment {
 
     private MainViewModel viewModel;
+    private PlaylistViewModel playlistViewModel;
     private RecyclerView recyclerView;
     private SongAdapter adapter;
     private View emptyState;
@@ -68,6 +76,7 @@ public class FavoritesFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        playlistViewModel = new ViewModelProvider(requireActivity()).get(PlaylistViewModel.class);
 
         initViews(view);
         setupRecyclerView();
@@ -103,7 +112,7 @@ public class FavoritesFragment extends Fragment {
 
             @Override
             public void onAddToPlaylist(Song song) {
-                // Should be implemented or use common dialog
+                showAddToPlaylistDialog(song);
             }
 
             @Override
@@ -113,7 +122,7 @@ public class FavoritesFragment extends Fragment {
 
             @Override
             public void onDelete(Song song) {
-                // Implementation for delete
+                viewModel.toggleFavorite(song);
             }
 
             @Override
@@ -134,6 +143,50 @@ public class FavoritesFragment extends Fragment {
             } else {
                 emptyState.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void showAddToPlaylistDialog(Song song) {
+        playlistViewModel.getAllPlaylists().observe(getViewLifecycleOwner(), new androidx.lifecycle.Observer<List<Playlist>>() {
+            @Override
+            public void onChanged(List<Playlist> playlists) {
+                playlistViewModel.getAllPlaylists().removeObserver(this);
+                if (playlists == null || playlists.isEmpty()) {
+                    Toasty.info(requireContext(), "No playlists available", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_playlist_picker, null);
+                RecyclerView rv = dialogView.findViewById(R.id.recyclerViewPlaylists);
+                Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+                AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                        .setView(dialogView)
+                        .create();
+
+                dialog.show();
+
+                if (dialog.getWindow() != null) {
+                    dialog.getWindow().setLayout(
+                            (int) (getResources().getDisplayMetrics().widthPixels * 0.9),
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                }
+
+                PlaylistAdapter playlistAdapter = new PlaylistAdapter(requireContext());
+                playlistAdapter.setPlaylists(playlists);
+                rv.setLayoutManager(new LinearLayoutManager(requireContext()));
+                rv.setAdapter(playlistAdapter);
+
+                playlistAdapter.setOnPlaylistClickListener(selected -> {
+                    playlistViewModel.addSongToPlaylist(selected.getId(), song.getId());
+                    Toasty.success(requireContext(), "Added to " + selected.getName(), Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                });
+
+                btnCancel.setOnClickListener(v -> dialog.dismiss());
             }
         });
     }

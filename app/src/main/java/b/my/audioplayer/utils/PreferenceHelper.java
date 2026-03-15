@@ -84,4 +84,13 @@ public class PreferenceHelper {
     public void setRepeatMode(int mode) {
         editor.putInt(Constants.PREF_REPEAT_MODE, mode).apply();
     }
+
+    // Playback Speed
+    public float getPlaybackSpeed() {
+        return preferences.getFloat(Constants.PREF_PLAYBACK_SPEED, Constants.DEFAULT_PLAYBACK_SPEED);
+    }
+
+    public void setPlaybackSpeed(float speed) {
+        editor.putFloat(Constants.PREF_PLAYBACK_SPEED, speed).apply();
+    }
 }

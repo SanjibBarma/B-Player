@@ -5,7 +5,7 @@
     <item android:id="@+id/action_toggle_favorite"
         android:title="Add to Favorites"/>
     <item android:id="@+id/action_delete"
-        android:title="Delete"/>
+        android:title="Remove"/>
     <item android:id="@+id/action_share"
         android:title="Share"/>
 </menu>

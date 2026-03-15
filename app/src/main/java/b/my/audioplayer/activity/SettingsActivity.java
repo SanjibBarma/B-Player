@@ -1,8 +1,13 @@
 package b.my.audioplayer.activity;
 
 import android.app.Dialog;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
@@ -10,11 +15,11 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import b.my.audioplayer.R;
+import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.viewmodel.MainViewModel;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -23,7 +28,6 @@ public class SettingsActivity extends AppCompatActivity {
     private MainViewModel viewModel;
 
     private ImageButton btnBack;
-//    private SwitchMaterial switchDarkMode;
     private SwitchMaterial switchCrossfade;
     private LinearLayout layoutCrossfadeDuration;
     private SeekBar seekBarCrossfade;
@@ -32,6 +36,24 @@ public class SettingsActivity extends AppCompatActivity {
     private LinearLayout btnScanMedia;
     private TextView textAppVersion;
     Dialog dialog;
+
+    // Service connection
+    private MusicPlaybackService musicService;
+    private boolean isBound = false;
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicPlaybackService.MusicBinder binder = (MusicPlaybackService.MusicBinder) service;
+            musicService = binder.getService();
+            isBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +74,16 @@ public class SettingsActivity extends AppCompatActivity {
         loadSettings();
         setupListeners();
         setupObservers();
+        bindService();
+    }
+
+    private void bindService() {
+        Intent intent = new Intent(this, MusicPlaybackService.class);
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void initViews() {
         btnBack = findViewById(R.id.btnBackSettings);
-//        switchDarkMode = findViewById(R.id.switchDarkMode);
         switchCrossfade = findViewById(R.id.switchCrossfade);
         layoutCrossfadeDuration = findViewById(R.id.layoutCrossfadeDuration);
         seekBarCrossfade = findViewById(R.id.seekBarCrossfade);
@@ -74,9 +101,6 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void loadSettings() {
-        boolean isDarkMode = preferences.getBoolean("dark_mode", false);
-//        switchDarkMode.setChecked(isDarkMode);
-
         boolean isCrossfade = preferences.getBoolean("crossfade_enabled", false);
         switchCrossfade.setChecked(isCrossfade);
         layoutCrossfadeDuration.setVisibility(isCrossfade ? View.VISIBLE : View.GONE);
@@ -92,12 +116,6 @@ public class SettingsActivity extends AppCompatActivity {
     private void setupListeners() {
         btnBack.setOnClickListener(v -> onBackPressed());
 
-//        switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            preferences.edit().putBoolean("dark_mode", isChecked).apply();
-//            AppCompatDelegate.setDefaultNightMode(
-//                    isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
-//        });
-
         switchCrossfade.setOnCheckedChangeListener((buttonView, isChecked) -> {
             preferences.edit().putBoolean("crossfade_enabled", isChecked).apply();
             layoutCrossfadeDuration.setVisibility(isChecked ? View.VISIBLE : View.GONE);
@@ -106,6 +124,11 @@ public class SettingsActivity extends AppCompatActivity {
         seekBarCrossfade.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // Minimum 1 second crossfade
+                if (progress < 1) {
+                    progress = 1;
+                    seekBar.setProgress(1);
+                }
                 textCrossfadeDuration.setText("Duration: " + progress + " seconds");
                 if (fromUser) {
                     preferences.edit().putInt("crossfade_duration", progress).apply();
@@ -121,6 +144,11 @@ public class SettingsActivity extends AppCompatActivity {
 
         switchVolumeNormalization.setOnCheckedChangeListener((buttonView, isChecked) -> {
             preferences.edit().putBoolean("volume_normalization", isChecked).apply();
+
+            // Real-time e volume update koro
+            if (isBound && musicService != null && musicService.getMusicPlayer() != null) {
+                musicService.getMusicPlayer().updateVolumeNormalization();
+            }
         });
 
         btnScanMedia.setOnClickListener(v -> {
@@ -136,5 +164,14 @@ public class SettingsActivity extends AppCompatActivity {
                 dialog.dismiss();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (isBound) {
+            unbindService(serviceConnection);
+            isBound = false;
+        }
     }
 }

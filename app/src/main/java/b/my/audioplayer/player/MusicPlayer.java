@@ -1,12 +1,14 @@
 package b.my.audioplayer.player;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.preference.PreferenceManager;
 import b.my.audioplayer.database.AppDatabase;
 import b.my.audioplayer.model.Song;
 import b.my.audioplayer.utils.PreferenceHelper;
@@ -19,6 +21,7 @@ import java.util.concurrent.Executors;
 public class MusicPlayer {
 
     private ExoPlayer exoPlayer;
+    private ExoPlayer nextPlayer;
     private Context context;
     private List<Song> originalPlaylist;
     private List<Song> currentPlaylist;
@@ -26,11 +29,23 @@ public class MusicPlayer {
     private boolean isShuffleEnabled = false;
     private int repeatMode = Player.REPEAT_MODE_OFF;
     private PreferenceHelper preferenceHelper;
+    private SharedPreferences sharedPreferences;
     private PlayerCallback callback;
     private Handler handler;
     private Runnable positionUpdateRunnable;
     private boolean isPositionUpdateRunning = false;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private float currentPlaybackSpeed = 1.0f;
+
+    // Crossfade variables
+    private boolean isCrossfading = false;
+    private Handler crossfadeHandler;
+    private Runnable crossfadeMonitorRunnable;
+    private static final int FADE_INTERVAL = 50;
+
+    // Volume Normalization variables
+    private static final float NORMALIZED_VOLUME_LEVEL = 0.75f;
+    private float currentVolume = 1.0f;
 
     public interface PlayerCallback {
         void onPlaybackStateChanged(boolean isPlaying);
@@ -42,9 +57,13 @@ public class MusicPlayer {
     public MusicPlayer(Context context) {
         this.context = context;
         this.preferenceHelper = new PreferenceHelper(context);
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.originalPlaylist = new ArrayList<>();
         this.currentPlaylist = new ArrayList<>();
         this.handler = new Handler(Looper.getMainLooper());
+        this.crossfadeHandler = new Handler(Looper.getMainLooper());
+
+        this.currentPlaybackSpeed = preferenceHelper.getPlaybackSpeed();
 
         initializePlayer();
         loadSavedState();
@@ -52,12 +71,22 @@ public class MusicPlayer {
 
     private void initializePlayer() {
         exoPlayer = new ExoPlayer.Builder(context).build();
+        exoPlayer.setPlaybackSpeed(currentPlaybackSpeed);
+        setupPlayerListener();
+    }
+
+    private void setupPlayerListener() {
+        if (exoPlayer == null) return;
 
         exoPlayer.addListener(new Player.Listener() {
             @Override
             public void onPlaybackStateChanged(int state) {
                 if (state == Player.STATE_ENDED) {
                     handlePlaybackEnded();
+                }
+                // Volume normalization apply koro jokhon ready
+                if (state == Player.STATE_READY) {
+                    applyVolumeNormalization();
                 }
             }
 
@@ -68,6 +97,9 @@ public class MusicPlayer {
                 }
                 if (isPlaying) {
                     startPositionUpdates();
+                    if (isCrossfadeEnabled()) {
+                        startCrossfadeMonitoring();
+                    }
                 } else {
                     stopPositionUpdates();
                 }
@@ -75,12 +107,16 @@ public class MusicPlayer {
 
             @Override
             public void onMediaItemTransition(MediaItem mediaItem, int reason) {
-                int newIndex = exoPlayer.getCurrentMediaItemIndex();
-                if (newIndex >= 0 && newIndex < currentPlaylist.size()) {
-                    currentIndex = newIndex;
-                    if (callback != null) {
-                        callback.onSongChanged(currentPlaylist.get(currentIndex));
+                if (!isCrossfading) {
+                    int newIndex = exoPlayer.getCurrentMediaItemIndex();
+                    if (newIndex >= 0 && newIndex < currentPlaylist.size()) {
+                        currentIndex = newIndex;
+                        if (callback != null) {
+                            callback.onSongChanged(currentPlaylist.get(currentIndex));
+                        }
                     }
+                    // Notun song e volume normalization apply koro
+                    applyVolumeNormalization();
                 }
                 saveCurrentState();
             }
@@ -94,6 +130,212 @@ public class MusicPlayer {
         });
     }
 
+    // ==================== VOLUME NORMALIZATION METHODS ====================
+
+    private void applyVolumeNormalization() {
+        if (exoPlayer == null || isCrossfading) return;
+
+        if (isVolumeNormalizationEnabled()) {
+            currentVolume = NORMALIZED_VOLUME_LEVEL;
+        } else {
+            currentVolume = 1.0f;
+        }
+
+        exoPlayer.setVolume(currentVolume);
+    }
+
+    public void updateVolumeNormalization() {
+        applyVolumeNormalization();
+    }
+
+    // ==================== CROSSFADE METHODS ====================
+
+    private boolean isCrossfadeEnabled() {
+        return sharedPreferences.getBoolean("crossfade_enabled", false);
+    }
+
+    private int getCrossfadeDuration() {
+        return sharedPreferences.getInt("crossfade_duration", 3);
+    }
+
+    private boolean isVolumeNormalizationEnabled() {
+        return sharedPreferences.getBoolean("volume_normalization", false);
+    }
+
+    private void startCrossfadeMonitoring() {
+        stopCrossfadeMonitoring();
+
+        crossfadeMonitorRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (exoPlayer != null && exoPlayer.isPlaying() && !isCrossfading) {
+                    long currentPosition = exoPlayer.getCurrentPosition();
+                    long duration = exoPlayer.getDuration();
+                    int crossfadeDuration = getCrossfadeDuration() * 1000;
+
+                    if (duration > 0 && (duration - currentPosition) <= crossfadeDuration) {
+                        int nextIndex = getNextIndex();
+                        if (nextIndex != -1) {
+                            startCrossfade(crossfadeDuration);
+                        }
+                    } else {
+                        crossfadeHandler.postDelayed(this, 200);
+                    }
+                }
+            }
+        };
+
+        crossfadeHandler.postDelayed(crossfadeMonitorRunnable, 200);
+    }
+
+    private void stopCrossfadeMonitoring() {
+        if (crossfadeMonitorRunnable != null) {
+            crossfadeHandler.removeCallbacks(crossfadeMonitorRunnable);
+            crossfadeMonitorRunnable = null;
+        }
+    }
+
+    private int getNextIndex() {
+        if (currentPlaylist.isEmpty()) return -1;
+
+        if (repeatMode == Player.REPEAT_MODE_ONE) {
+            return currentIndex;
+        }
+
+        int next = currentIndex + 1;
+        if (next >= currentPlaylist.size()) {
+            if (repeatMode == Player.REPEAT_MODE_ALL) {
+                return 0;
+            }
+            return -1;
+        }
+        return next;
+    }
+
+    private void startCrossfade(int durationMs) {
+        if (isCrossfading) return;
+
+        int nextIndex = getNextIndex();
+        if (nextIndex == -1) return;
+
+        isCrossfading = true;
+
+        try {
+            Song nextSong = currentPlaylist.get(nextIndex);
+
+            nextPlayer = new ExoPlayer.Builder(context).build();
+            nextPlayer.setPlaybackSpeed(currentPlaybackSpeed);
+
+            MediaItem mediaItem = MediaItem.fromUri(nextSong.getPath());
+            nextPlayer.setMediaItem(mediaItem);
+            nextPlayer.prepare();
+            nextPlayer.setVolume(0f);
+            nextPlayer.play();
+
+            executeCrossfade(durationMs, nextIndex);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            isCrossfading = false;
+            if (nextPlayer != null) {
+                nextPlayer.release();
+                nextPlayer = null;
+            }
+        }
+    }
+
+    private void executeCrossfade(int durationMs, int nextIndex) {
+        int steps = durationMs / FADE_INTERVAL;
+        final float volumeStep = 1.0f / steps;
+
+        // Volume normalization check
+        final float maxVolume = isVolumeNormalizationEnabled() ? NORMALIZED_VOLUME_LEVEL : 1.0f;
+
+        new Thread(() -> {
+            for (int i = 0; i <= steps && isCrossfading; i++) {
+                float currentVol = (1.0f - (volumeStep * i)) * maxVolume;
+                float nextVol = (volumeStep * i) * maxVolume;
+
+                final float finalCurrentVol = Math.max(0f, Math.min(maxVolume, currentVol));
+                final float finalNextVol = Math.max(0f, Math.min(maxVolume, nextVol));
+
+                handler.post(() -> {
+                    try {
+                        if (exoPlayer != null) {
+                            exoPlayer.setVolume(finalCurrentVol);
+                        }
+                        if (nextPlayer != null) {
+                            nextPlayer.setVolume(finalNextVol);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                try {
+                    Thread.sleep(FADE_INTERVAL);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+
+            handler.post(() -> completeCrossfade(nextIndex));
+
+        }).start();
+    }
+
+    private void completeCrossfade(int nextIndex) {
+        try {
+            if (exoPlayer != null) {
+                exoPlayer.stop();
+                exoPlayer.release();
+            }
+
+            exoPlayer = nextPlayer;
+            nextPlayer = null;
+
+            if (exoPlayer != null) {
+                // Volume normalization based volume set koro
+                float targetVolume = isVolumeNormalizationEnabled() ? NORMALIZED_VOLUME_LEVEL : 1.0f;
+                exoPlayer.setVolume(targetVolume);
+                currentVolume = targetVolume;
+
+                setupPlayerListener();
+            }
+
+            currentIndex = nextIndex;
+
+            if (callback != null && currentIndex < currentPlaylist.size()) {
+                callback.onSongChanged(currentPlaylist.get(currentIndex));
+                callback.onPlaybackStateChanged(exoPlayer != null && exoPlayer.isPlaying());
+            }
+
+            isCrossfading = false;
+            saveCurrentState();
+
+            if (isCrossfadeEnabled() && exoPlayer != null && exoPlayer.isPlaying()) {
+                startCrossfadeMonitoring();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            isCrossfading = false;
+        }
+    }
+
+    private void cancelCrossfade() {
+        isCrossfading = false;
+        stopCrossfadeMonitoring();
+        if (nextPlayer != null) {
+            nextPlayer.release();
+            nextPlayer = null;
+        }
+        // Crossfade cancel hole volume thik koro
+        applyVolumeNormalization();
+    }
+
+    // ==================== EXISTING METHODS ====================
+
     private void loadSavedState() {
         isShuffleEnabled = preferenceHelper.isShuffleEnabled();
         repeatMode = preferenceHelper.getRepeatMode();
@@ -104,7 +346,6 @@ public class MusicPlayer {
             List<Song> allSongs = AppDatabase.getInstance(context).songDao().getAllSongsSync();
             if (allSongs != null && !allSongs.isEmpty()) {
                 handler.post(() -> {
-                    // Use internal method that respects saved shuffle state
                     setPlaylistInternal(allSongs, true);
 
                     if (lastSongId != -1) {
@@ -128,7 +369,9 @@ public class MusicPlayer {
         if (currentIndex >= 0 && currentIndex < currentPlaylist.size()) {
             preferenceHelper.setLastPlayedSongId(currentPlaylist.get(currentIndex).getId());
         }
-        preferenceHelper.setLastPosition(exoPlayer.getCurrentPosition());
+        if (exoPlayer != null) {
+            preferenceHelper.setLastPosition(exoPlayer.getCurrentPosition());
+        }
         preferenceHelper.setShuffleEnabled(isShuffleEnabled);
         preferenceHelper.setRepeatMode(repeatMode);
     }
@@ -137,37 +380,25 @@ public class MusicPlayer {
         this.callback = callback;
     }
 
-    /**
-     * Set playlist - plays in order (ignores shuffle state for new playlist)
-     */
     public void setPlaylist(List<Song> songs) {
         setPlaylist(songs, 0);
     }
 
-    /**
-     * Set playlist with start index - plays in order from that index
-     * Shuffle is NOT applied to new playlist automatically
-     */
     public void setPlaylist(List<Song> songs, int startIndex) {
+        cancelCrossfade();
+
         this.originalPlaylist = new ArrayList<>(songs);
         this.currentPlaylist = new ArrayList<>(songs);
 
-        // Ensure startIndex is valid
         if (startIndex < 0 || startIndex >= currentPlaylist.size()) {
             this.currentIndex = 0;
         } else {
             this.currentIndex = startIndex;
         }
 
-        // DO NOT shuffle when setting new playlist
-        // User must explicitly enable shuffle
-
         preparePlaylist(0);
     }
 
-    /**
-     * Internal method - respects shuffle state (used for restoring state)
-     */
     private void setPlaylistInternal(List<Song> songs, boolean applyShuffle) {
         this.originalPlaylist = new ArrayList<>(songs);
         this.currentPlaylist = new ArrayList<>(songs);
@@ -209,9 +440,7 @@ public class MusicPlayer {
     }
 
     public void play() {
-        if (exoPlayer == null) {
-            return;
-        }
+        if (exoPlayer == null) return;
 
         if (currentPlaylist == null || currentPlaylist.isEmpty()) {
             if (callback != null) {
@@ -233,11 +462,16 @@ public class MusicPlayer {
     }
 
     public void stop() {
+        cancelCrossfade();
         exoPlayer.stop();
         saveCurrentState();
     }
 
     public void playNext() {
+        if (isCrossfading) return;
+
+        cancelCrossfade();
+
         if (exoPlayer.hasNextMediaItem()) {
             exoPlayer.seekToNextMediaItem();
             play();
@@ -248,6 +482,8 @@ public class MusicPlayer {
     }
 
     public void playPrevious() {
+        cancelCrossfade();
+
         if (exoPlayer.getCurrentPosition() > 3000) {
             exoPlayer.seekTo(0);
         } else if (exoPlayer.hasPreviousMediaItem()) {
@@ -260,6 +496,8 @@ public class MusicPlayer {
     }
 
     public void playSongAt(int index) {
+        cancelCrossfade();
+
         if (index >= 0 && index < currentPlaylist.size()) {
             currentIndex = index;
             exoPlayer.seekTo(currentIndex, 0);
@@ -268,6 +506,9 @@ public class MusicPlayer {
     }
 
     public void seekTo(long position) {
+        if (isCrossfading) {
+            cancelCrossfade();
+        }
         exoPlayer.seekTo(position);
     }
 
@@ -327,7 +568,7 @@ public class MusicPlayer {
         positionUpdateRunnable = new Runnable() {
             @Override
             public void run() {
-                if (callback != null && exoPlayer.isPlaying()) {
+                if (callback != null && exoPlayer != null && exoPlayer.isPlaying()) {
                     callback.onPositionChanged(
                             exoPlayer.getCurrentPosition(),
                             exoPlayer.getDuration()
@@ -348,7 +589,8 @@ public class MusicPlayer {
         }
     }
 
-    // Getters
+    // ==================== GETTERS ====================
+
     public ExoPlayer getExoPlayer() {
         return exoPlayer;
     }
@@ -369,7 +611,7 @@ public class MusicPlayer {
     }
 
     public boolean isPlaying() {
-        return exoPlayer.isPlaying();
+        return exoPlayer != null && exoPlayer.isPlaying();
     }
 
     public boolean isShuffleEnabled() {
@@ -381,24 +623,20 @@ public class MusicPlayer {
     }
 
     public long getCurrentPosition() {
-        return exoPlayer.getCurrentPosition();
+        return exoPlayer != null ? exoPlayer.getCurrentPosition() : 0;
     }
 
     public long getDuration() {
-        return exoPlayer.getDuration();
+        return exoPlayer != null ? exoPlayer.getDuration() : 0;
     }
 
     public int getAudioSessionId() {
-        return exoPlayer.getAudioSessionId();
+        return exoPlayer != null ? exoPlayer.getAudioSessionId() : 0;
     }
 
     public void addToQueue(Song song) {
-        if (currentPlaylist == null) {
-            currentPlaylist = new ArrayList<>();
-        }
-        if (originalPlaylist == null) {
-            originalPlaylist = new ArrayList<>();
-        }
+        if (currentPlaylist == null) currentPlaylist = new ArrayList<>();
+        if (originalPlaylist == null) originalPlaylist = new ArrayList<>();
 
         currentPlaylist.add(song);
         originalPlaylist.add(song);
@@ -436,9 +674,14 @@ public class MusicPlayer {
     }
 
     public void release() {
+        cancelCrossfade();
         saveCurrentState();
         stopPositionUpdates();
-        exoPlayer.release();
+        stopCrossfadeMonitoring();
+
+        if (exoPlayer != null) {
+            exoPlayer.release();
+        }
         executorService.shutdown();
     }
 
@@ -448,17 +691,14 @@ public class MusicPlayer {
             return;
         }
 
-        // Move in currentPlaylist
         Song movedSong = currentPlaylist.remove(fromPosition);
         currentPlaylist.add(toPosition, movedSong);
 
-        // Move in originalPlaylist (if not shuffled, they are same)
         if (!isShuffleEnabled && fromPosition < originalPlaylist.size() && toPosition < originalPlaylist.size()) {
             Song originalSong = originalPlaylist.remove(fromPosition);
             originalPlaylist.add(toPosition, originalSong);
         }
 
-        // Update currentIndex
         if (currentIndex == fromPosition) {
             currentIndex = toPosition;
         } else if (fromPosition < currentIndex && toPosition >= currentIndex) {
@@ -467,9 +707,19 @@ public class MusicPlayer {
             currentIndex++;
         }
 
-        // Update ExoPlayer media items
         exoPlayer.moveMediaItem(fromPosition, toPosition);
-
         saveCurrentState();
+    }
+
+    public void setPlaybackSpeed(float speed) {
+        this.currentPlaybackSpeed = speed;
+        if (exoPlayer != null) {
+            exoPlayer.setPlaybackSpeed(speed);
+        }
+        preferenceHelper.setPlaybackSpeed(speed);
+    }
+
+    public float getPlaybackSpeed() {
+        return currentPlaybackSpeed;
     }
 }

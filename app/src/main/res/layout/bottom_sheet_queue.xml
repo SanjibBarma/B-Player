@@ -22,13 +22,12 @@
 
         <!-- Drag Handle -->
         <View
-            android:layout_width="40dp"
-            android:layout_height="4dp"
+            android:layout_width="60dp"
+            android:layout_height="6dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="8dp"
-            android:background="@drawable/bg_drag_handle"
-            android:backgroundTint="@color/colorSecondary" />
+            android:background="@drawable/bg_drag_handle" />
 
         <!-- Header -->
         <LinearLayout

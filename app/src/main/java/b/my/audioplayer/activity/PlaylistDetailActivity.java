@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.graphics.drawable.DrawableCompat;
@@ -58,8 +60,8 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     private SongAdapter adapter;
     private CollapsingToolbarLayout collapsingToolbar;
     private ImageView playlistCoverArt;
-    private MaterialButton btnPlayAll;
-    private MaterialButton btnShuffleAll;
+    private ConstraintLayout btnPlayAll;
+    private ConstraintLayout btnShuffleAll;
     private FloatingActionButton fabAddSongs;
     private MaterialToolbar toolbar;
     private TextView emptyStateText;
@@ -144,7 +146,7 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         Drawable navIcon = toolbar.getNavigationIcon();
         if (navIcon != null) {
             navIcon = DrawableCompat.wrap(navIcon).mutate();
-            DrawableCompat.setTint(navIcon, color);
+//            DrawableCompat.setTint(navIcon, color);
             toolbar.setNavigationIcon(navIcon);
         }
 
@@ -311,6 +313,15 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                     .setView(dialogView)
                     .create();
 
+            dialog.show();
+
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setLayout(
+                        (int)(getResources().getDisplayMetrics().widthPixels * 0.9),
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+            }
+
             if (dialog.getWindow() != null) {
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             }
@@ -327,7 +338,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             });
 
             btnCancel.setOnClickListener(v -> dialog.dismiss());
-            dialog.show();
         });
     }
 
@@ -346,6 +356,15 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 .setView(dialogView)
                 .create();
 
+        dialog.show();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int)(getResources().getDisplayMetrics().widthPixels * 0.9),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
@@ -360,8 +379,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
             dialog.dismiss();
         });
-
-        dialog.show();
     }
 
     private void shareSong(Song song) {
@@ -452,6 +469,15 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 .setView(dialogView)
                 .create();
 
+        dialog.show();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int)(getResources().getDisplayMetrics().widthPixels * 0.9),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
@@ -467,7 +493,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
     }
 
     private void showDeleteConfirmation() {
@@ -485,6 +510,15 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 .setView(dialogView)
                 .create();
 
+        dialog.show();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int)(getResources().getDisplayMetrics().widthPixels * 0.9),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
@@ -497,7 +531,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
     }
 
     private void showClearConfirmation() {
@@ -515,6 +548,15 @@ public class PlaylistDetailActivity extends AppCompatActivity {
                 .setView(dialogView)
                 .create();
 
+        dialog.show();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int)(getResources().getDisplayMetrics().widthPixels * 0.9),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
@@ -526,7 +568,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
     }
 
     private void bindService() {

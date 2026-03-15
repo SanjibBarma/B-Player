@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -21,12 +22,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 import b.my.audioplayer.R;
 import b.my.audioplayer.activity.PlaylistDetailActivity;
 import b.my.audioplayer.adapter.PlaylistAdapter;
 import b.my.audioplayer.model.Playlist;
+import b.my.audioplayer.utils.GradientTextView;
 import b.my.audioplayer.viewmodel.PlaylistViewModel;
 import b.my.audioplayer.utils.Constants;
 import es.dmoral.toasty.Toasty;
@@ -117,7 +118,13 @@ public class PlaylistsFragment extends Fragment {
                 .setView(dialogView)
                 .create();
 
+        dialog.show();
+
         if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.9),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
@@ -135,7 +142,6 @@ public class PlaylistsFragment extends Fragment {
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
     }
 
     private void showRenameDialog(Playlist playlist) {
@@ -156,7 +162,13 @@ public class PlaylistsFragment extends Fragment {
                 .setView(dialogView)
                 .create();
 
+        dialog.show();
+
         if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.9),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
@@ -174,7 +186,6 @@ public class PlaylistsFragment extends Fragment {
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
     }
 
     private void showDeleteConfirmation(Playlist playlist) {
@@ -182,7 +193,7 @@ public class PlaylistsFragment extends Fragment {
                 .inflate(R.layout.dialog_create_playlist, null);
 
         TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
-        TextInputLayout layout = dialogView.findViewById(R.id.layoutPlaylistName);
+        CardView layout = dialogView.findViewById(R.id.layoutPlaylistName);
         Button btnDelete = dialogView.findViewById(R.id.btnCreate);
         Button btnCancel = dialogView.findViewById(R.id.btnCancel);
 
@@ -190,9 +201,9 @@ public class PlaylistsFragment extends Fragment {
         layout.setVisibility(View.GONE); // Hide input for delete dialog
 
         // Add a message text view
-        TextView messageView = new TextView(requireContext());
+        GradientTextView messageView = new GradientTextView(requireContext());
         messageView.setText("Are you sure you want to delete \"" + playlist.getName() + "\"?");
-        messageView.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorSecondary));
+//        messageView.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorSecondary));
         messageView.setTextSize(16);
         messageView.setPadding(0, 24, 0, 24);
 
@@ -207,7 +218,13 @@ public class PlaylistsFragment extends Fragment {
                 .setView(dialogView)
                 .create();
 
+        dialog.show();
+
         if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.9),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
@@ -218,6 +235,5 @@ public class PlaylistsFragment extends Fragment {
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
     }
 }

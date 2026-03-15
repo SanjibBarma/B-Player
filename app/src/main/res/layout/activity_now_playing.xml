@@ -39,13 +39,11 @@
                 android:textStyle="bold" />
 
             <ImageButton
-                android:id="@+id/btnMenu"
+                android:id="@+id/btnSpeed"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_more_vert"
-                android:visibility="invisible"
-                app:tint="?attr/colorOnSurface" />
+                android:src="@drawable/ic_speed"/>
 
         </LinearLayout>
 
@@ -54,7 +52,7 @@
             android:layout_width="280dp"
             android:layout_height="280dp"
             android:layout_marginTop="32dp"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="12dp"
             app:cardElevation="8dp">
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -83,12 +81,12 @@
                     android:id="@+id/btnFavorite"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
                     android:layout_marginEnd="8dp"
-                    android:layout_marginBottom="8dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_favorite_border"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
@@ -192,7 +190,6 @@
                 android:layout_marginStart="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_shuffle"
-                android:tint="@color/colorSecondary"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/btnPrevious"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -205,19 +202,20 @@
                 android:layout_height="64dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_skip_previous"
-                android:tint="@color/colorSecondary"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/btnPlayPause"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/btnShuffle"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
+            <ImageButton
                 android:id="@+id/btnPlayPause"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
                 android:layout_marginHorizontal="24dp"
                 android:src="@drawable/ic_play"
+                android:tint="@color/colorPrimary"
+                android:background="@drawable/widget_play_button_bg"
                 app:fabSize="normal"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/btnNext"
@@ -231,7 +229,6 @@
                 android:layout_height="64dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_skip_next"
-                android:tint="@color/colorSecondary"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/btnRepeat"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -245,7 +242,6 @@
                 android:layout_marginEnd="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_repeat"
-                android:tint="@color/colorSecondary"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -269,8 +265,7 @@
                 android:layout_height="48dp"
                 android:layout_marginStart="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_lyrics"
-                android:tint="@color/colorSecondary" />
+                android:src="@drawable/ic_lyrics" />
 
             <ImageButton
                 android:id="@+id/btnEqualizer"
@@ -278,8 +273,7 @@
                 android:layout_height="48dp"
                 android:layout_marginStart="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_equalizer"
-                android:tint="@color/colorSecondary" />
+                android:src="@drawable/ic_equalizer" />
 
             <ImageButton
                 android:id="@+id/btnSleepTimer"
@@ -287,8 +281,7 @@
                 android:layout_height="48dp"
                 android:layout_marginStart="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_timer"
-                android:tint="@color/colorSecondary" />
+                android:src="@drawable/ic_timer" />
 
             <ImageButton
                 android:id="@+id/btnPlayList"
@@ -296,8 +289,7 @@
                 android:layout_height="48dp"
                 android:layout_marginStart="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_playlist"
-                android:tint="@color/colorSecondary" />
+                android:src="@drawable/ic_playlist"/>
 
         </LinearLayout>
 

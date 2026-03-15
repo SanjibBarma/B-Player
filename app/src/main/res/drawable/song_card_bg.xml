@@ -2,7 +2,7 @@
 
     <item>
         <shape>
-            <corners android:radius="16dp"/>
+            <corners android:radius="12dp"/>
             <gradient
                 android:startColor="#FFFFFF"
                 android:centerColor="#FFFF00"
@@ -18,7 +18,7 @@
         android:bottom="0.5dp">
 
         <shape>
-            <corners android:radius="16dp"/>
+            <corners android:radius="12dp"/>
             <gradient
                 android:startColor="#2D0B3A"
                 android:endColor="#1A0521"
