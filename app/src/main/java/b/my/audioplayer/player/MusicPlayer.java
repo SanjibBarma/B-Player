@@ -441,4 +441,35 @@ public class MusicPlayer {
         exoPlayer.release();
         executorService.shutdown();
     }
+
+    public void moveQueueItem(int fromPosition, int toPosition) {
+        if (fromPosition < 0 || fromPosition >= currentPlaylist.size() ||
+                toPosition < 0 || toPosition >= currentPlaylist.size()) {
+            return;
+        }
+
+        // Move in currentPlaylist
+        Song movedSong = currentPlaylist.remove(fromPosition);
+        currentPlaylist.add(toPosition, movedSong);
+
+        // Move in originalPlaylist (if not shuffled, they are same)
+        if (!isShuffleEnabled && fromPosition < originalPlaylist.size() && toPosition < originalPlaylist.size()) {
+            Song originalSong = originalPlaylist.remove(fromPosition);
+            originalPlaylist.add(toPosition, originalSong);
+        }
+
+        // Update currentIndex
+        if (currentIndex == fromPosition) {
+            currentIndex = toPosition;
+        } else if (fromPosition < currentIndex && toPosition >= currentIndex) {
+            currentIndex--;
+        } else if (fromPosition > currentIndex && toPosition <= currentIndex) {
+            currentIndex++;
+        }
+
+        // Update ExoPlayer media items
+        exoPlayer.moveMediaItem(fromPosition, toPosition);
+
+        saveCurrentState();
+    }
 }

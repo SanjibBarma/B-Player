@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -26,12 +27,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.Player;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import b.my.audioplayer.R;
+import b.my.audioplayer.adapter.QueueAdapter;
 import b.my.audioplayer.model.Song;
 import b.my.audioplayer.service.MusicPlaybackService;
 import b.my.audioplayer.utils.WaveView;
@@ -185,20 +190,12 @@ public class NowPlayingActivity extends AppCompatActivity {
         btnFavorite.setOnClickListener(v -> {
             Song currentSong = viewModel.getCurrentSong().getValue();
             if (currentSong != null) {
-                // ✅ Get current status BEFORE toggling
                 boolean currentStatus = currentSong.isFavorite();
                 boolean newFavoriteStatus = !currentStatus;
-
-                // ✅ Update UI immediately
                 updateFavoriteIcon(newFavoriteStatus);
-
-                // ✅ Save to database (toggleFavorite will flip the status internally)
                 mainViewModel.toggleFavorite(currentSong);
 
-                // ✅ Show toast based on NEW status
-                Toasty.success(this,
-                        newFavoriteStatus ? "Added to Favorites" : "Removed from Favorites",
-                        Toasty.LENGTH_SHORT, true).show();
+                Toasty.success(this, newFavoriteStatus ? "Added to Favorites" : "Removed from Favorites", Toasty.LENGTH_SHORT, true).show();
             }
         });
 
@@ -215,6 +212,8 @@ public class NowPlayingActivity extends AppCompatActivity {
                 startActivity(new Intent(this, EqualizerActivity.class)));
 
         findViewById(R.id.btnSleepTimer).setOnClickListener(v -> showSleepTimerDialog());
+
+        findViewById(R.id.btnPlayList).setOnClickListener(v -> showQueueBottomSheet());
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -479,9 +478,9 @@ public class NowPlayingActivity extends AppCompatActivity {
 
     private void updateFavoriteIcon(boolean isFavorite) {
         btnFavorite.setImageResource(isFavorite ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
-        btnFavorite.setColorFilter(isFavorite
-                ? getColor(R.color.colorFavorite)
-                : getColor(R.color.colorSecondary));
+//        btnFavorite.setColorFilter(isFavorite
+//                ? getColor(R.color.colorFavorite)
+//                : getColor(R.color.colorSecondary));
     }
 
     private void startSeekBarUpdate() {
@@ -533,7 +532,7 @@ public class NowPlayingActivity extends AppCompatActivity {
 
         if (dialog.getWindow() != null) {
             dialog.getWindow().setLayout(
-                    (int)(getResources().getDisplayMetrics().widthPixels * 0.9),
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.9),
                     ViewGroup.LayoutParams.WRAP_CONTENT
             );
         }
@@ -576,6 +575,7 @@ public class NowPlayingActivity extends AppCompatActivity {
 
     private static class OptionViewHolder extends RecyclerView.ViewHolder {
         TextView tvOption;
+
         OptionViewHolder(View view) {
             super(view);
             tvOption = view.findViewById(R.id.tvOptionName);
@@ -618,5 +618,297 @@ public class NowPlayingActivity extends AppCompatActivity {
             unbindService(serviceConnection);
             isBound = false;
         }
+    }
+
+    private void setupSwipeAndDrag(RecyclerView recyclerView, QueueAdapter adapter, TextView tvQueueCount) {
+        ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT
+        ) {
+
+            private int dragFromPosition = -1;
+            private int dragToPosition = -1;
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                int fromPos = viewHolder.getAdapterPosition();
+                int toPos = target.getAdapterPosition();
+
+                if (dragFromPosition == -1) {
+                    dragFromPosition = fromPos;
+                }
+                dragToPosition = toPos;
+
+                adapter.moveItem(fromPos, toPos);
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+
+                // ✅ Position validation
+                if (position == RecyclerView.NO_POSITION) {
+                    return;
+                }
+
+                if (!isBound || musicService == null || musicService.getMusicPlayer() == null) {
+                    adapter.notifyItemChanged(position);
+                    return;
+                }
+
+                int currentIdx = musicService.getCurrentIndex();
+
+                if (position == currentIdx) {
+                    Toasty.warning(NowPlayingActivity.this, "Cannot remove currently playing song", Toasty.LENGTH_SHORT).show();
+                    adapter.notifyItemChanged(position);
+                    return;
+                }
+
+                // ✅ Remove from queue
+                musicService.getMusicPlayer().removeFromQueue(position);
+
+                // ✅ Update UI
+                List<Song> updatedQueue = musicService.getCurrentPlaylist();
+                int newCurrentIndex = musicService.getCurrentIndex();
+
+                if (updatedQueue != null) {
+                    adapter.setQueue(updatedQueue, newCurrentIndex);
+                    adapter.setPlayingState(newCurrentIndex, musicService.isPlaying());
+                    tvQueueCount.setText(updatedQueue.size() + " songs");
+                }
+
+                Toasty.success(NowPlayingActivity.this, "Removed from queue", Toasty.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                int position = viewHolder.getAdapterPosition();
+
+                if (position == RecyclerView.NO_POSITION) {
+                    return 0;
+                }
+
+                int currentIdx = isBound && musicService != null ? musicService.getCurrentIndex() : -1;
+
+                int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+                int swipeFlags = (position == currentIdx) ? 0 : ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
+
+                return makeMovementFlags(dragFlags, swipeFlags);
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                viewHolder.itemView.setAlpha(1.0f);
+                viewHolder.itemView.setElevation(0f);
+                viewHolder.itemView.setTranslationX(0f);
+
+                if (dragFromPosition != -1 && dragToPosition != -1 && dragFromPosition != dragToPosition) {
+                    if (isBound && musicService != null && musicService.getMusicPlayer() != null) {
+                        musicService.getMusicPlayer().moveQueueItem(dragFromPosition, dragToPosition);
+                        int newCurrentIndex = musicService.getCurrentIndex();
+                        adapter.updateCurrentIndex(newCurrentIndex);
+                    }
+                }
+
+                dragFromPosition = -1;
+                dragToPosition = -1;
+            }
+
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                super.onSelectedChanged(viewHolder, actionState);
+                if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && viewHolder != null) {
+                    viewHolder.itemView.setElevation(16f);
+                    viewHolder.itemView.setAlpha(0.85f);
+                }
+            }
+
+            @Override
+            public void onChildDraw(@NonNull android.graphics.Canvas c, @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+
+                View itemView = viewHolder.itemView;
+
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    // Red background
+                    android.graphics.Paint paint = new android.graphics.Paint();
+                    paint.setColor(0xFFE53935);
+
+                    if (dX > 0) {
+                        c.drawRect(itemView.getLeft(), itemView.getTop(),
+                                itemView.getLeft() + dX, itemView.getBottom(), paint);
+                    } else if (dX < 0) {
+                        c.drawRect(itemView.getRight() + dX, itemView.getTop(),
+                                itemView.getRight(), itemView.getBottom(), paint);
+                    }
+
+                    // Fade effect
+                    float alpha = 1.0f - Math.abs(dX) / (float) itemView.getWidth();
+                    itemView.setAlpha(Math.max(alpha, 0.2f));
+                    itemView.setTranslationX(dX);
+
+                } else {
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                }
+            }
+
+            @Override
+            public float getSwipeThreshold(@NonNull RecyclerView.ViewHolder viewHolder) {
+                return 0.4f; // ✅ 40% swipe করলেই delete হবে
+            }
+
+            @Override
+            public float getSwipeEscapeVelocity(float defaultValue) {
+                return defaultValue * 0.5f; // ✅ কম velocity তেও কাজ করবে
+            }
+
+            @Override
+            public float getSwipeVelocityThreshold(float defaultValue) {
+                return defaultValue * 2f;
+            }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return true;
+            }
+
+            @Override
+            public boolean isItemViewSwipeEnabled() {
+                return true;
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+    }
+
+    private void removeFromQueue(int position, QueueAdapter adapter, TextView tvQueueCount) {
+        if (!isBound || musicService == null || musicService.getMusicPlayer() == null) {
+            return;
+        }
+
+        int currentIdx = musicService.getCurrentIndex();
+
+        if (position == currentIdx) {
+            Toasty.warning(this, "Cannot remove currently playing song", Toasty.LENGTH_SHORT).show();
+            List<Song> queue = musicService.getCurrentPlaylist();
+            adapter.setQueue(queue, currentIdx);
+            adapter.setPlayingState(currentIdx, musicService.isPlaying());
+            return;
+        }
+
+        musicService.getMusicPlayer().removeFromQueue(position);
+
+        List<Song> updatedQueue = musicService.getCurrentPlaylist();
+        int newCurrentIndex = musicService.getCurrentIndex();
+        adapter.setQueue(updatedQueue, newCurrentIndex);
+        adapter.setPlayingState(newCurrentIndex, musicService.isPlaying());
+
+        tvQueueCount.setText(updatedQueue.size() + " songs");
+        Toasty.success(this, "Removed from queue", Toasty.LENGTH_SHORT).show();
+    }
+
+    private void showQueueBottomSheet() {
+        if (!isBound || musicService == null) {
+            Toasty.warning(this, "Player not ready", Toasty.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<Song> queue = musicService.getCurrentPlaylist();
+        int currentIndex = musicService.getCurrentIndex();
+
+        if (queue == null || queue.isEmpty()) {
+            Toasty.info(this, "Queue is empty", Toasty.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
+        View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_queue, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
+
+        // ✅ FIX: BottomSheet Behavior setup
+        BottomSheetBehavior<?> behavior = bottomSheetDialog.getBehavior();
+        behavior.setDraggable(true);  // ✅ Changed to true
+        behavior.setSkipCollapsed(true);  // ✅ Skip collapsed state
+        behavior.setState(BottomSheetBehavior.STATE_EXPANDED);  // ✅ Start expanded
+        behavior.setHideable(true);  // ✅ Allow hiding
+
+        View parent = (View) bottomSheetView.getParent();
+        parent.getLayoutParams().height = (int) (getResources().getDisplayMetrics().heightPixels * 0.7);
+
+        TextView tvQueueTitle = bottomSheetView.findViewById(R.id.tvQueueTitle);
+        TextView tvQueueCount = bottomSheetView.findViewById(R.id.tvQueueCount);
+        RecyclerView recyclerViewQueue = bottomSheetView.findViewById(R.id.recyclerViewQueue);
+
+        tvQueueTitle.setText("Playing Queue");
+        tvQueueCount.setText(queue.size() + " songs");
+
+        QueueAdapter queueAdapter = new QueueAdapter(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerViewQueue.setLayoutManager(layoutManager);
+        recyclerViewQueue.setAdapter(queueAdapter);
+
+        // ✅ FIX: RecyclerView touch handling
+        recyclerViewQueue.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                int action = e.getAction();
+                if (action == MotionEvent.ACTION_DOWN) {
+                    // Disable BottomSheet drag when touching RecyclerView
+                    rv.getParent().requestDisallowInterceptTouchEvent(true);
+                }
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {}
+
+
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {}
+        });
+
+        boolean isCurrentlyPlaying = musicService.isPlaying();
+        queueAdapter.setQueue(queue, currentIndex);
+        queueAdapter.setPlayingState(currentIndex, isCurrentlyPlaying);
+
+        // Setup swipe and drag
+        setupSwipeAndDrag(recyclerViewQueue, queueAdapter, tvQueueCount);
+
+        if (currentIndex >= 0 && currentIndex < queue.size()) {
+            recyclerViewQueue.scrollToPosition(currentIndex);
+        }
+
+        queueAdapter.setOnQueueItemClickListener(new QueueAdapter.OnQueueItemClickListener() {
+            @Override
+            public void onSongClick(int position) {
+                if (isBound && musicService != null) {
+                    int currentIdx = musicService.getCurrentIndex();
+
+                    if (position == currentIdx) {
+                        return;
+                    }
+
+                    musicService.playSongAt(position);
+                    queueAdapter.setPlayingState(position, true);
+                }
+            }
+
+            @Override
+            public void onRemoveClick(int position) {
+                removeFromQueue(position, queueAdapter, tvQueueCount);
+            }
+        });
+
+        // ✅ FIX: Smooth dismiss on outside touch
+        bottomSheetDialog.setCanceledOnTouchOutside(true);
+
+        bottomSheetDialog.show();
     }
 }

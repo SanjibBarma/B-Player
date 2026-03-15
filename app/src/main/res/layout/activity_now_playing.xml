@@ -78,6 +78,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:visibility="gone"/>
+
+                <ImageButton
+                    android:id="@+id/btnFavorite"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_favorite_border"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
@@ -253,14 +264,6 @@
             android:paddingHorizontal="24dp">
 
             <ImageButton
-                android:id="@+id/btnFavorite"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_favorite_border"
-                android:tint="@color/colorSecondary" />
-
-            <ImageButton
                 android:id="@+id/btnLyrics"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -285,6 +288,15 @@
                 android:layout_marginStart="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_timer"
+                android:tint="@color/colorSecondary" />
+
+            <ImageButton
+                android:id="@+id/btnPlayList"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="24dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_playlist"
                 android:tint="@color/colorSecondary" />
 
         </LinearLayout>

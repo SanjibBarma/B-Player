@@ -62,14 +62,13 @@
 
         <b.my.audioplayer.utils.GradientTextView
             android:id="@+id/lyricsSongTitle"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:ellipsize="marquee"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:gravity="center"
             android:marqueeRepeatLimit="marquee_forever"
             android:scrollHorizontally="true"
             android:singleLine="true"
@@ -79,13 +78,12 @@
 
         <b.my.audioplayer.utils.GradientTextView
             android:id="@+id/lyricsArtistName"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="40dp"
             android:layout_marginTop="4dp"
             android:layout_marginRight="40dp"
             android:alpha="0.7"
-            android:gravity="center"
             android:singleLine="true"
             android:text="Artist Name"
             android:textSize="14sp" />
