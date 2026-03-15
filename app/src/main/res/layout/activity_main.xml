@@ -1,117 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/ic_main_bg"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:context=".common_activity.MainActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/appBarLayout"
-            android:layout_width="match_parent"
+        <b.my.audioplayer.utils.GradientTextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:foreground="@android:color/transparent"
-            app:layout_constraintBottom_toTopOf="@+id/fragmentContainer"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:text="B Player"
+            android:textColor="@android:color/black"
+            android:textSize="28sp"
+            android:textStyle="bold" />
 
-            <com.google.android.material.card.MaterialCardView
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/audioPlayerCard"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_marginBottom="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:rippleColor="#20000000"
+            app:strokeColor="#E0E0E0"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="?attr/colorSurface"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="6dp"
-                app:strokeWidth="0dp">
+                android:layout_height="match_parent"
+                android:background="@drawable/gradient_background"
+                android:padding="16dp">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:id="@+id/audioIcon"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_music_note"
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/song_card_bg">
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="16dp"
+                    android:layout_toEndOf="@id/audioIcon"
+                    android:text="Audio Player"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
 
-                    <androidx.appcompat.widget.Toolbar
-                        android:id="@+id/toolbar"
-                        android:layout_width="match_parent"
-                        android:layout_height="?attr/actionBarSize"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                        app:theme="@style/Theme.BPlayer.Toolbar">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_play_circle"
+                    app:tint="@color/white" />
 
-                        <androidx.constraintlayout.widget.ConstraintLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+            </RelativeLayout>
 
-                            <b.my.audioplayer.utils.GradientTextView
-                                android:id="@+id/tvAppBarTitle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="B Player"
-                                android:textColor="@color/colorSecondary"
-                                android:textSize="22sp"
-                                android:textStyle="bold|italic"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent" />
+        </com.google.android.material.card.MaterialCardView>
 
-                        </androidx.constraintlayout.widget.ConstraintLayout>
-                    </androidx.appcompat.widget.Toolbar>
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <!-- Fragment Container -->
-        <FrameLayout
-            android:id="@+id/fragmentContainer"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/videoPlayerCard"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:background="@android:color/transparent"
-            app:layout_constraintBottom_toTopOf="@+id/miniPlayerContainer"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+            android:layout_height="140dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:rippleColor="#20000000"
+            app:strokeColor="#E0E0E0"
+            app:strokeWidth="1dp">
 
-        <!-- Mini Player -->
-        <include
-            android:id="@+id/miniPlayerContainer"
-            layout="@layout/layout_mini_player"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/gradient_overlay"
+                android:padding="16dp">
 
-        <!-- Bottom Navigation -->
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNavigation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="@android:color/transparent"
-            app:itemIconTint="@drawable/bottom_nav_item_color"
-            app:itemTextColor="@drawable/bottom_nav_item_color"
-            app:labelVisibilityMode="labeled"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:menu="@menu/menu_bottom_navigation" />
+                <ImageView
+                    android:id="@+id/videoIcon"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_video_library"
+                    app:tint="@color/white" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="16dp"
+                    android:layout_toEndOf="@id/videoIcon"
+                    android:text="Video Player"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_play_circle"
+                    app:tint="@color/white" />
+
+            </RelativeLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

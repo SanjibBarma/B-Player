@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="b.my.audioplayer">
-
+    package="b.my.audioplayer" >
     <!-- Storage permissions -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission
@@ -11,32 +10,26 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29"
-        tools:ignore="ScopedStorage" />
-
-    <!-- Service & playback -->
+        tools:ignore="ScopedStorage" /> <!-- Service & playback -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <!-- Notifications (Android 13+) -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- Media button / lock screen (needed on some OEMs) -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- Notifications (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Media button / lock screen (needed on some OEMs) -->
     <uses-permission
         android:name="android.permission.MEDIA_CONTENT_CONTROL"
-        tools:ignore="ProtectedPermission" />
-
-    <!-- Bluetooth -->
+        tools:ignore="ProtectedPermission" /> <!-- Bluetooth -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-
-    <!-- Misc -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> <!-- Misc -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission
+        android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
     <application
         android:name=".BPlayerApplication"
@@ -47,73 +40,73 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BPlayer"
         android:usesCleartextTraffic="true"
-        tools:targetApi="31">
-
-        <!-- ==================== Activities ==================== -->
-
+        tools:targetApi="31" >
         <activity
-            android:name=".activity.SplashActivity"
+            android:name=".common_activity.MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".video_player.activity.VideoPlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:exported="false" />
+        <activity
+            android:name=".video_player.activity.VideoLibraryActivity"
+            android:exported="false" /> <!-- ==================== Activities ==================== -->
+        <activity
+            android:name=".common_activity.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.BPlayer">
+            android:theme="@style/Theme.BPlayer" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".audio_player.activity.AudioMainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustNothing">
+            android:windowSoftInputMode="adjustNothing" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="audio/*" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name=".activity.NowPlayingActivity"
+            android:name=".audio_player.activity.NowPlayingActivity"
             android:exported="false"
             android:theme="@style/Theme.BPlayer" />
-
         <activity
-            android:name=".activity.PlaylistDetailActivity"
+            android:name=".audio_player.activity.PlaylistDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.EqualizerActivity"
+            android:name=".audio_player.activity.EqualizerActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.SettingsActivity"
+            android:name=".audio_player.activity.SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.AlbumDetailActivity"
+            android:name=".audio_player.activity.AlbumDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.SongPickerActivity"
+            android:name=".audio_player.activity.SongPickerActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.LyricsActivity"
-            android:exported="false" />
-
-        <!-- ==================== Foreground Service ==================== -->
-
+            android:name=".audio_player.activity.LyricsActivity"
+            android:exported="false" /> <!-- ==================== Foreground Service ==================== -->
         <service
-            android:name=".service.MusicPlaybackService"
+            android:name=".audio_player.service.MusicPlaybackService"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback">
-
+            android:foregroundServiceType="mediaPlayback" >
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
-        </service>
-
-        <!-- ==================== Widgets ==================== -->
-
+        </service> <!-- ==================== Widgets ==================== -->
         <receiver
-            android:name=".widget.MusicWidgetProvider"
-            android:exported="true">
+            android:name=".audio_player.widget.MusicWidgetProvider"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="b.my.audioplayer.widget.PLAY_PAUSE" />
@@ -121,14 +114,14 @@
                 <action android:name="b.my.audioplayer.widget.PREVIOUS" />
                 <action android:name="b.my.audioplayer.widget.UPDATE" />
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/music_widget_info" />
         </receiver>
-
         <receiver
-            android:name=".widget.MusicWidgetProviderLarge"
-            android:exported="true">
+            android:name=".audio_player.widget.MusicWidgetProviderLarge"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="b.my.audioplayer.widget.PLAY_PAUSE_LARGE" />
@@ -136,33 +129,27 @@
                 <action android:name="b.my.audioplayer.widget.PREVIOUS_LARGE" />
                 <action android:name="b.my.audioplayer.widget.UPDATE_LARGE" />
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/music_widget_large_info" />
-        </receiver>
-
-        <!-- ==================== Receivers ==================== -->
-
+        </receiver> <!-- ==================== Receivers ==================== -->
         <receiver
-            android:name=".receiver.BootReceiver"
-            android:exported="true">
+            android:name=".audio_player.receiver.BootReceiver"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
-        </receiver>
-
-        <!-- ==================== FileProvider ==================== -->
-
+        </receiver> <!-- ==================== FileProvider ==================== -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="b.my.audioplayer.fileprovider"
             android:exported="false"
-            android:grantUriPermissions="true">
+            android:grantUriPermissions="true" >
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
-
     </application>
 
 </manifest>

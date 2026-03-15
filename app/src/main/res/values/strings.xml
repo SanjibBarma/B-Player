@@ -38,4 +38,13 @@
     <string name="added_to_favorites">Added to favorites</string>
     <string name="removed_from_favorites">Removed from favorites</string>
     <string name="added_to_playlist">Added to playlist</string>
+
+    <string name="no_videos">No videos found</string>
+    <string name="loading">Loading videos…</string>
+    <string name="permission_required">Storage permission required</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="brightness">Brightness</string>
+    <string name="volume">Volume</string>
+    <string name="locked">Controls Locked</string>
+    <string name="unlocked">Controls Unlocked</string>
 </resources>

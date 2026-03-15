@@ -13,7 +13,9 @@ import java.util.List;
 public class PermissionHelper {
 
     public static final int PERMISSION_REQUEST_CODE = 100;
+    public static final int VIDEO_PERMISSION_REQUEST_CODE = 101;
 
+    // ==================== Audio Permissions ====================
     public static String[] getRequiredPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             return new String[]{
@@ -59,6 +61,51 @@ public class PermissionHelper {
         }
     }
 
+    // ==================== Video Permissions ====================
+    public static String[] getVideoPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return new String[]{
+                    Manifest.permission.READ_MEDIA_VIDEO
+            };
+        } else {
+            return new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+            };
+        }
+    }
+
+    public static boolean hasVideoPermission(Context context) {
+        String[] permissions = getVideoPermissions();
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(context, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void requestVideoPermission(Activity activity) {
+        String[] permissions = getVideoPermissions();
+        List<String> permissionsNeeded = new ArrayList<>();
+
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(activity, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(permission);
+            }
+        }
+
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(
+                    activity,
+                    permissionsNeeded.toArray(new String[0]),
+                    VIDEO_PERMISSION_REQUEST_CODE
+            );
+        }
+    }
+
+    // ==================== Bluetooth Permissions ====================
     public static boolean checkBluetoothPermission(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             return ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT)
@@ -74,7 +121,7 @@ public class PermissionHelper {
                 ActivityCompat.requestPermissions(
                         activity,
                         new String[]{Manifest.permission.BLUETOOTH_CONNECT},
-                        PERMISSION_REQUEST_CODE + 1
+                        PERMISSION_REQUEST_CODE + 2
                 );
             }
         }

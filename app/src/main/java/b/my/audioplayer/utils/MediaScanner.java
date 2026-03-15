@@ -6,9 +6,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
-import b.my.audioplayer.model.Album;
-import b.my.audioplayer.model.Artist;
-import b.my.audioplayer.model.Song;
+import b.my.audioplayer.audio_player.model.Album;
+import b.my.audioplayer.audio_player.model.Artist;
+import b.my.audioplayer.audio_player.model.Song;
 import java.util.ArrayList;
 import java.util.List;
 

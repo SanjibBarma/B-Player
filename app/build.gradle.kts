@@ -74,4 +74,5 @@ dependencies {
 
     // Toasty
     implementation("com.github.GrenderG:Toasty:1.5.2")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }
