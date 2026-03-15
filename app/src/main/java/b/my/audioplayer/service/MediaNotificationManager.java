@@ -249,7 +249,7 @@ public class MediaNotificationManager {
         Log.d(TAG, "Button icon: " + (isPlaying ? "PAUSE" : "PLAY") + ", title: " + title);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_music_note)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(albumArt)
                 .setContentTitle(title)
                 .setContentText(artist)
